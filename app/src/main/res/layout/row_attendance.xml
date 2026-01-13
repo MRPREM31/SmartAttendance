@@ -4,32 +4,37 @@
     android:layout_height="wrap_content"
     android:orientation="vertical"
     android:padding="12dp"
-    android:background="#F5F5F5"
+    android:background="#FFFFFF"
     android:layout_marginBottom="8dp">
 
-    <include
-        layout="@layout/toolbar_main" />
-
-
+    <!-- STUDENT NAME -->
     <TextView
         android:id="@+id/txtStudentId"
-        android:text="Student ID"
-        android:textStyle="bold"
-        android:textSize="16sp"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"/>
+        android:layout_height="wrap_content"
+        android:text="Student Name (ID)"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:textColor="#000000"
+        android:layout_marginBottom="4dp"/>
 
+    <!-- ATTENDANCE TIME -->
     <TextView
         android:id="@+id/txtTime"
-        android:text="Time"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"/>
+        android:layout_height="wrap_content"
+        android:text="Time: 09:30 AM"
+        android:textSize="14sp"
+        android:textColor="#333333"
+        android:layout_marginBottom="2dp"/>
 
+    <!-- DEVICE ID -->
     <TextView
         android:id="@+id/txtDevice"
-        android:text="Device ID"
-        android:textSize="12sp"
-        android:textColor="#666666"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"/>
+        android:layout_height="wrap_content"
+        android:text="Device: XXXXX"
+        android:textSize="12sp"
+        android:textColor="#666666"/>
+
 </LinearLayout>

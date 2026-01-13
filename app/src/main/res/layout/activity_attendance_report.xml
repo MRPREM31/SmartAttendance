@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#EEF2FF"
+    android:fitsSystemWindows="true">
+
+    <!-- 🔷 TOOLBAR -->
+    <include layout="@layout/toolbar_main" />
+
+    <!-- CONTENT -->
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true"
+        android:paddingBottom="24dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="20dp">
+
+            <!-- 👋 TITLE -->
+            <TextView
+                android:id="@+id/txtWelcome"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Attendance Report"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:textColor="#1A237E"
+                android:layout_marginBottom="16dp" />
+
+            <!-- 📅 DATE -->
+            <TextView
+                android:text="Select Date"
+                android:textStyle="bold"
+                android:textColor="#3F51B5"
+                android:layout_marginBottom="6dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+
+            <EditText
+                android:id="@+id/edtDate"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:hint="dd-MM-yyyy"
+                android:textColor="#000000"
+                android:textColorHint="#666666"
+                android:background="@android:drawable/edit_text"
+                android:focusable="false"
+                android:padding="14dp"
+                android:layout_marginBottom="16dp" />
+
+            <!-- 📘 SUBJECT -->
+            <TextView
+                android:text="Select Subject"
+                android:textStyle="bold"
+                android:textColor="#3F51B5"
+                android:layout_marginBottom="6dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+
+            <Spinner
+                android:id="@+id/spinnerSubject"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:background="@android:drawable/btn_dropdown"
+                android:backgroundTint="#3F51B5"
+                android:layout_marginBottom="16dp" />
+
+            <!-- ⏰ TIME SLOT -->
+            <TextView
+                android:text="Select Time Slot"
+                android:textStyle="bold"
+                android:textColor="#3F51B5"
+                android:layout_marginBottom="6dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+
+            <Spinner
+                android:id="@+id/spinnerTimeSlot"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:background="@android:drawable/btn_dropdown"
+                android:backgroundTint="#3F51B5"
+                android:layout_marginBottom="20dp" />
+
+            <!-- 🔍 FETCH BUTTON -->
+            <Button
+                android:id="@+id/btnFetchAttendance"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:text="Get Attendance"
+                android:textAllCaps="false"
+                android:textStyle="bold"
+                android:textColor="#FFFFFF"
+                android:backgroundTint="#3F51B5"
+                android:layout_marginBottom="20dp" />
+
+            <!-- 📊 TOTAL -->
+            <TextView
+                android:id="@+id/txtTotal"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Total Present: 0"
+                android:textStyle="bold"
+                android:textSize="16sp"
+                android:textColor="#1A237E"
+                android:layout_marginBottom="12dp" />
+
+            <!-- 📋 ATTENDANCE LIST -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recyclerAttendance"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="#FFFFFF"
+                android:padding="12dp" />
+
+            <!-- EXTRA SPACE -->
+            <Space
+                android:layout_width="match_parent"
+                android:layout_height="32dp" />
+
+        </LinearLayout>
+    </ScrollView>
+
+</LinearLayout>

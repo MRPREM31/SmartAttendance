@@ -1,5 +1,6 @@
 package com.college.smartattendance;
 
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.os.CountDownTimer;
@@ -36,7 +37,7 @@ import java.util.UUID;
 public class TeacherDashboardActivity extends AppCompatActivity {
 
     Spinner spinnerSubject, spinnerTime;
-    Button btnGenerateQR;
+    Button btnGenerateQR, btnViewAttendance;
     ImageView imgQR;
     TextView txtCountdown, txtDateTime;
 
@@ -67,6 +68,7 @@ public class TeacherDashboardActivity extends AppCompatActivity {
         spinnerSubject = findViewById(R.id.spinnerSubject);
         spinnerTime = findViewById(R.id.spinnerTime);
         btnGenerateQR = findViewById(R.id.btnGenerateQR);
+        btnViewAttendance = findViewById(R.id.btnViewAttendance);
         imgQR = findViewById(R.id.imgQR);
         txtCountdown = findViewById(R.id.txtCountdown);
         txtDateTime = findViewById(R.id.txtDateTime);
@@ -99,6 +101,14 @@ public class TeacherDashboardActivity extends AppCompatActivity {
         ));
 
         btnGenerateQR.setOnClickListener(v -> generateQRSession());
+
+        // ✅ VIEW ATTENDANCE BUTTON ACTION
+        btnViewAttendance.setOnClickListener(v ->
+                startActivity(new Intent(
+                        TeacherDashboardActivity.this,
+                        AttendanceReportActivity.class
+                ))
+        );
     }
 
     // ================= LIVE DATE & TIME =================
@@ -135,7 +145,6 @@ public class TeacherDashboardActivity extends AppCompatActivity {
                     .replace(".", " ");
         }
 
-        // 📅 Date & Time
         String date = new SimpleDateFormat(
                 "dd-MM-yyyy",
                 Locale.getDefault()
@@ -158,15 +167,12 @@ public class TeacherDashboardActivity extends AppCompatActivity {
         session.put("status", "ACTIVE");
         session.put("totalPresent", 0);
 
-        // 🔹 Firebase
         db.collection("attendance_sessions")
                 .document(currentSessionId)
                 .set(session);
 
-        // 🔹 Google Sheet
         sendToGoogleSheet("attendance_sessions", session);
 
-        // 🔹 Generate QR
         try {
             BarcodeEncoder encoder = new BarcodeEncoder();
             Bitmap bitmap = encoder.encodeBitmap(
@@ -184,7 +190,6 @@ public class TeacherDashboardActivity extends AppCompatActivity {
         btnGenerateQR.setEnabled(false);
 
         new CountDownTimer(60000, 1000) {
-
             public void onTick(long ms) {
                 txtCountdown.setText("QR valid for " + (ms / 1000) + " sec");
             }
@@ -192,7 +197,6 @@ public class TeacherDashboardActivity extends AppCompatActivity {
             public void onFinish() {
                 endSessionAndCountAttendance();
             }
-
         }.start();
     }
 

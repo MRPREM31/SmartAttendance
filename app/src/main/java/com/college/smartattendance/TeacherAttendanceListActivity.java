@@ -18,7 +18,8 @@ public class TeacherAttendanceListActivity extends AppCompatActivity {
 
     RecyclerView recyclerView;
     TextView txtTotal;
-    AttendanceAdapter adapter;
+
+    AttendanceSimpleAdapter adapter;
     ArrayList<AttendanceModel> list = new ArrayList<>();
 
     @Override
@@ -26,7 +27,7 @@ public class TeacherAttendanceListActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_teacher_attendance_list);
 
-        // 🔷 NAVBAR (SAFE)
+        // 🔷 TOOLBAR
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         if (getSupportActionBar() != null) {
@@ -34,13 +35,16 @@ public class TeacherAttendanceListActivity extends AppCompatActivity {
             getSupportActionBar().setTitle("Attendance List");
         }
 
+        // 🔹 Get sessionId
         String sessionId = getIntent().getStringExtra("sessionId");
 
         txtTotal = findViewById(R.id.txtTotal);
         recyclerView = findViewById(R.id.recyclerView);
 
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        adapter = new AttendanceAdapter(list);
+
+        // ✅ USE CORRECT LIST
+        adapter = new AttendanceSimpleAdapter(list);
         recyclerView.setAdapter(adapter);
 
         loadAttendance(sessionId);
@@ -58,15 +62,13 @@ public class TeacherAttendanceListActivity extends AppCompatActivity {
 
                     list.clear();
 
-                    // ✅ API 23 SAFE LOOP
                     for (QueryDocumentSnapshot doc : value) {
-                        AttendanceModel model = doc.toObject(AttendanceModel.class);
+                        AttendanceModel model =
+                                doc.toObject(AttendanceModel.class);
                         list.add(model);
                     }
 
-                    // ✅ SAFE STRING
                     txtTotal.setText("Total Present: " + list.size());
-
                     adapter.notifyDataSetChanged();
                 });
     }
@@ -75,7 +77,7 @@ public class TeacherAttendanceListActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == android.R.id.home) {
-            finish(); // safer than onBackPressed
+            finish();
             return true;
         }
         return super.onOptionsItemSelected(item);

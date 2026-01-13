@@ -3,22 +3,19 @@ package com.college.smartattendance;
 public class AttendanceModel {
 
     private String studentId;
-    private String date;
+    private String studentName;
     private String time;
     private String deviceId;
     private String status;
 
-    // 🔹 REQUIRED empty constructor for Firebase
-    public AttendanceModel() {
-    }
+    public AttendanceModel() {}
 
-    // 🔹 Getters
     public String getStudentId() {
         return studentId;
     }
 
-    public String getDate() {
-        return date;
+    public String getStudentName() {
+        return studentName;
     }
 
     public String getTime() {
