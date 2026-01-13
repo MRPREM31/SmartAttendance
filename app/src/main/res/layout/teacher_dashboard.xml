@@ -42,9 +42,10 @@
 
             <!-- TITLE -->
             <TextView
+                android:id="@+id/txtGreeting"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Teacher Dashboard"
+                android:text="Hi Teacher 👋"
                 android:textSize="22sp"
                 android:textStyle="bold"
                 android:textColor="#1A237E"

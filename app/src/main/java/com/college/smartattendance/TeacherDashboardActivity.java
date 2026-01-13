@@ -7,11 +7,11 @@ import android.os.CountDownTimer;
 import android.os.Handler;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.TextView;
-import android.widget.ArrayAdapter;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
@@ -39,7 +39,7 @@ public class TeacherDashboardActivity extends AppCompatActivity {
     Spinner spinnerSubject, spinnerTime;
     Button btnGenerateQR, btnViewAttendance;
     ImageView imgQR;
-    TextView txtCountdown, txtDateTime;
+    TextView txtCountdown, txtDateTime, txtGreeting;
 
     FirebaseAuth auth;
     FirebaseFirestore db;
@@ -54,10 +54,9 @@ public class TeacherDashboardActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.teacher_dashboard);
 
-        // 🔷 TOOLBAR SETUP
+        // 🔷 TOOLBAR
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-
         if (getSupportActionBar() != null) {
             getSupportActionBar().setTitle("Teacher Dashboard");
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
@@ -73,8 +72,10 @@ public class TeacherDashboardActivity extends AppCompatActivity {
         imgQR = findViewById(R.id.imgQR);
         txtCountdown = findViewById(R.id.txtCountdown);
         txtDateTime = findViewById(R.id.txtDateTime);
+        txtGreeting = findViewById(R.id.txtGreeting);
 
         startDateTimeUpdater();
+        loadTeacherGreeting();
 
         String[] subjects = {
                 "GEE", "CI", "FLAT", "OS", "PYTHON", "AI",
@@ -82,37 +83,50 @@ public class TeacherDashboardActivity extends AppCompatActivity {
         };
 
         String[] times = {
-                "08:00-09:00",
-                "09:00-10:00",
-                "10:00-11:00",
-                "11:00-12:00",
-                "12:00-01:00",
-                "01:00-02:00",
-                "02:00-03:00",
-                "03:00-04:00",
-                "04:00-05:00"
+                "08:00-09:00", "09:00-10:00", "10:00-11:00",
+                "11:00-12:00", "12:00-01:00", "01:00-02:00",
+                "02:00-03:00", "03:00-04:00", "04:00-05:00"
         };
 
         spinnerSubject.setAdapter(new ArrayAdapter<>(
-                this,
-                android.R.layout.simple_spinner_dropdown_item,
-                subjects
-        ));
+                this, android.R.layout.simple_spinner_dropdown_item, subjects));
 
         spinnerTime.setAdapter(new ArrayAdapter<>(
-                this,
-                android.R.layout.simple_spinner_dropdown_item,
-                times
-        ));
+                this, android.R.layout.simple_spinner_dropdown_item, times));
 
         btnGenerateQR.setOnClickListener(v -> fetchTeacherNameAndCreateSession());
 
         btnViewAttendance.setOnClickListener(v ->
-                startActivity(new Intent(
-                        TeacherDashboardActivity.this,
-                        AttendanceReportActivity.class
-                ))
-        );
+                startActivity(new Intent(this, AttendanceReportActivity.class)));
+    }
+
+    // ================= GREETING =================
+    private void loadTeacherGreeting() {
+
+        FirebaseUser user = auth.getCurrentUser();
+        if (user == null) return;
+
+        db.collection("users")
+                .document(user.getUid())
+                .get()
+                .addOnSuccessListener(doc -> {
+
+                    String name = doc.getString("name");
+                    if (name == null || name.isEmpty()) name = "Teacher";
+
+                    String greeting = getGreetingByTime();
+                    txtGreeting.setText("Hi " + name + ", " + greeting + " 👋");
+                });
+    }
+
+    private String getGreetingByTime() {
+        int hour = Integer.parseInt(
+                new SimpleDateFormat("HH", Locale.getDefault()).format(new Date()));
+
+        if (hour >= 5 && hour < 12) return "Good Morning";
+        if (hour >= 12 && hour < 17) return "Good Afternoon";
+        if (hour >= 17 && hour < 21) return "Good Evening";
+        return "Good Night";
     }
 
     // ================= LIVE DATE & TIME =================
@@ -132,7 +146,7 @@ public class TeacherDashboardActivity extends AppCompatActivity {
         });
     }
 
-    // ================= FETCH TEACHER NAME =================
+    // ================= FETCH TEACHER =================
     private void fetchTeacherNameAndCreateSession() {
 
         FirebaseUser user = auth.getCurrentUser();
@@ -158,22 +172,12 @@ public class TeacherDashboardActivity extends AppCompatActivity {
         currentSessionId = UUID.randomUUID().toString();
         long expiry = System.currentTimeMillis() + 60000;
 
-        String date = new SimpleDateFormat(
-                "dd-MM-yyyy", Locale.getDefault()
-        ).format(new Date());
-
-        String time = new SimpleDateFormat(
-                "hh:mm:ss a", Locale.getDefault()
-        ).format(new Date());
-
         Map<String, Object> session = new HashMap<>();
         session.put("sessionId", currentSessionId);
         session.put("teacherId", user.getUid());
         session.put("teacherName", teacherName);
         session.put("subject", spinnerSubject.getSelectedItem().toString());
         session.put("timeSlot", spinnerTime.getSelectedItem().toString());
-        session.put("date", date);
-        session.put("time", time);
         session.put("expiresAt", expiry);
         session.put("status", "ACTIVE");
         session.put("totalPresent", 0);
@@ -182,16 +186,10 @@ public class TeacherDashboardActivity extends AppCompatActivity {
                 .document(currentSessionId)
                 .set(session);
 
-        sendToGoogleSheet("attendance_sessions", session);
-
         try {
-            BarcodeEncoder encoder = new BarcodeEncoder();
-            Bitmap bitmap = encoder.encodeBitmap(
+            Bitmap bitmap = new BarcodeEncoder().encodeBitmap(
                     currentSessionId + "|" + expiry,
-                    BarcodeFormat.QR_CODE,
-                    400,
-                    400
-            );
+                    BarcodeFormat.QR_CODE, 400, 400);
             imgQR.setImageBitmap(bitmap);
         } catch (Exception e) {
             e.printStackTrace();
@@ -206,67 +204,11 @@ public class TeacherDashboardActivity extends AppCompatActivity {
             }
 
             public void onFinish() {
-                endSessionAndCountAttendance();
+                txtCountdown.setText("Session Completed");
+                btnGenerateQR.setEnabled(true);
+                imgQR.setImageDrawable(null);
             }
         }.start();
-    }
-
-    // ================= END SESSION =================
-    private void endSessionAndCountAttendance() {
-
-        txtCountdown.setText("Session Completed");
-        imgQR.setImageDrawable(null);
-        btnGenerateQR.setEnabled(true);
-
-        db.collection("attendance_records")
-                .whereEqualTo("sessionId", currentSessionId)
-                .get()
-                .addOnSuccessListener(qs -> {
-
-                    int totalStudents = qs.size();
-
-                    Map<String, Object> update = new HashMap<>();
-                    update.put("status", "COMPLETED");
-                    update.put("totalPresent", totalStudents);
-
-                    db.collection("attendance_sessions")
-                            .document(currentSessionId)
-                            .update(update);
-
-                    update.put("sessionId", currentSessionId);
-                    sendToGoogleSheet("attendance_sessions", update);
-                });
-    }
-
-    // ================= GOOGLE SHEET =================
-    private void sendToGoogleSheet(String collection, Map<String, Object> data) {
-
-        new Thread(() -> {
-            try {
-                URL url = new URL(GOOGLE_SCRIPT_URL);
-                HttpURLConnection conn =
-                        (HttpURLConnection) url.openConnection();
-
-                conn.setRequestMethod("POST");
-                conn.setRequestProperty("Content-Type", "application/json");
-                conn.setDoOutput(true);
-
-                JSONObject payload = new JSONObject();
-                payload.put("collection", collection);
-                payload.put("data", new JSONObject(data));
-
-                OutputStream os = conn.getOutputStream();
-                os.write(payload.toString().getBytes());
-                os.flush();
-                os.close();
-
-                conn.getResponseCode();
-                conn.disconnect();
-
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }).start();
     }
 
     // ================= MENU =================
@@ -276,32 +218,18 @@ public class TeacherDashboardActivity extends AppCompatActivity {
         return true;
     }
 
-    // ================= BACK & LOGOUT =================
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
 
-        if (item.getItemId() == android.R.id.home) {
-            goToWelcome();
-            return true;
-        }
+        if (item.getItemId() == android.R.id.home ||
+                item.getItemId() == R.id.action_logout) {
 
-        if (item.getItemId() == R.id.action_logout) {
             FirebaseAuth.getInstance().signOut();
-            goToWelcome();
+            Intent intent = new Intent(this, MainActivity.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            startActivity(intent);
             return true;
         }
-
         return super.onOptionsItemSelected(item);
-    }
-
-    @Override
-    public void onBackPressed() {
-        goToWelcome();
-    }
-
-    private void goToWelcome() {
-        Intent intent = new Intent(this, MainActivity.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-        startActivity(intent);
     }
 }
