@@ -29,8 +29,8 @@ public class AttendanceSuccessActivity extends AppCompatActivity {
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         if (getSupportActionBar() != null) {
-            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
             getSupportActionBar().setTitle("Attendance Status");
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         }
 
         // 🔷 VIEWS
@@ -38,13 +38,13 @@ public class AttendanceSuccessActivity extends AppCompatActivity {
         txtBigDate = findViewById(R.id.txtBigDate);
         Button btnDone = findViewById(R.id.btnDone);
 
-        // 📥 GET DATA FROM INTENT
+        // 📥 GET DATA
         String studentName = getIntent().getStringExtra("studentName");
         String subject = getIntent().getStringExtra("subject");
         String timeSlot = getIntent().getStringExtra("timeSlot");
         String teacherName = getIntent().getStringExtra("teacherName");
 
-        // 🔒 SAFETY (NULL CHECKS)
+        // 🔒 SAFE DEFAULTS
         if (studentName == null) studentName = "Student";
         if (subject == null) subject = "N/A";
         if (timeSlot == null) timeSlot = "N/A";
@@ -59,10 +59,9 @@ public class AttendanceSuccessActivity extends AppCompatActivity {
         String todayDate = new SimpleDateFormat(
                 "EEEE, dd MMM yyyy", Locale.getDefault()
         ).format(new Date());
-
         txtBigDate.setText(todayDate);
 
-        // 🧾 SUCCESS MESSAGE
+        // 🧾 MESSAGE
         String message =
                 "Hi " + studentName + ",\n\n" +
                         "Your attendance has been successfully marked.\n\n" +
@@ -74,8 +73,8 @@ public class AttendanceSuccessActivity extends AppCompatActivity {
 
         txtMessage.setText(message);
 
-        // ✅ DONE BUTTON
-        btnDone.setOnClickListener(v -> finish());
+        // ✅ DONE → WELCOME PAGE
+        btnDone.setOnClickListener(v -> goToWelcome());
     }
 
     // 🔷 MENU
@@ -85,23 +84,34 @@ public class AttendanceSuccessActivity extends AppCompatActivity {
         return true;
     }
 
+    // 🔷 BACK + LOGOUT HANDLING
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
 
-        // ⬅ Back
         if (item.getItemId() == android.R.id.home) {
-            onBackPressed();
+            goToWelcome();
             return true;
         }
 
-        // 🔓 Logout
         if (item.getItemId() == R.id.action_logout) {
             FirebaseAuth.getInstance().signOut();
-            startActivity(new Intent(this, MainActivity.class));
-            finish();
+            goToWelcome();
             return true;
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    // 🔷 MOBILE BACK BUTTON
+    @Override
+    public void onBackPressed() {
+        goToWelcome();
+    }
+
+    // 🔷 COMMON NAVIGATION METHOD
+    private void goToWelcome() {
+        Intent intent = new Intent(this, MainActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
     }
 }

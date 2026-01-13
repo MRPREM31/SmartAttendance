@@ -54,10 +54,13 @@ public class TeacherDashboardActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.teacher_dashboard);
 
+        // 🔷 TOOLBAR SETUP
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
         if (getSupportActionBar() != null) {
             getSupportActionBar().setTitle("Teacher Dashboard");
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         }
 
         auth = FirebaseAuth.getInstance();
@@ -90,7 +93,6 @@ public class TeacherDashboardActivity extends AppCompatActivity {
                 "04:00-05:00"
         };
 
-
         spinnerSubject.setAdapter(new ArrayAdapter<>(
                 this,
                 android.R.layout.simple_spinner_dropdown_item,
@@ -116,7 +118,7 @@ public class TeacherDashboardActivity extends AppCompatActivity {
     // ================= LIVE DATE & TIME =================
     private void startDateTimeUpdater() {
         Handler handler = new Handler();
-        Runnable runnable = new Runnable() {
+        handler.post(new Runnable() {
             @Override
             public void run() {
                 String dateTime = new SimpleDateFormat(
@@ -127,8 +129,7 @@ public class TeacherDashboardActivity extends AppCompatActivity {
                 txtDateTime.setText(dateTime);
                 handler.postDelayed(this, 1000);
             }
-        };
-        handler.post(runnable);
+        });
     }
 
     // ================= FETCH TEACHER NAME =================
@@ -158,13 +159,11 @@ public class TeacherDashboardActivity extends AppCompatActivity {
         long expiry = System.currentTimeMillis() + 60000;
 
         String date = new SimpleDateFormat(
-                "dd-MM-yyyy",
-                Locale.getDefault()
+                "dd-MM-yyyy", Locale.getDefault()
         ).format(new Date());
 
         String time = new SimpleDateFormat(
-                "hh:mm:ss a",
-                Locale.getDefault()
+                "hh:mm:ss a", Locale.getDefault()
         ).format(new Date());
 
         Map<String, Object> session = new HashMap<>();
@@ -277,14 +276,32 @@ public class TeacherDashboardActivity extends AppCompatActivity {
         return true;
     }
 
+    // ================= BACK & LOGOUT =================
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
 
-        if (item.getItemId() == R.id.action_logout) {
-            FirebaseAuth.getInstance().signOut();
-            finish();
+        if (item.getItemId() == android.R.id.home) {
+            goToWelcome();
             return true;
         }
+
+        if (item.getItemId() == R.id.action_logout) {
+            FirebaseAuth.getInstance().signOut();
+            goToWelcome();
+            return true;
+        }
+
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onBackPressed() {
+        goToWelcome();
+    }
+
+    private void goToWelcome() {
+        Intent intent = new Intent(this, MainActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
     }
 }

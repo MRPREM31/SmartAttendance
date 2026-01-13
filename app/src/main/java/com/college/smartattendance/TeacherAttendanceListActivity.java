@@ -1,6 +1,8 @@
 package com.college.smartattendance;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.TextView;
 
@@ -9,6 +11,7 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
@@ -22,6 +25,8 @@ public class TeacherAttendanceListActivity extends AppCompatActivity {
     AttendanceSimpleAdapter adapter;
     ArrayList<AttendanceModel> list = new ArrayList<>();
 
+    String sessionId;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -31,23 +36,23 @@ public class TeacherAttendanceListActivity extends AppCompatActivity {
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         if (getSupportActionBar() != null) {
-            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
             getSupportActionBar().setTitle("Attendance List");
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         }
 
-        // 🔹 Get sessionId
-        String sessionId = getIntent().getStringExtra("sessionId");
+        // 🔹 GET SESSION ID
+        sessionId = getIntent().getStringExtra("sessionId");
 
         txtTotal = findViewById(R.id.txtTotal);
         recyclerView = findViewById(R.id.recyclerView);
 
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
-
-        // ✅ USE CORRECT LIST
         adapter = new AttendanceSimpleAdapter(list);
         recyclerView.setAdapter(adapter);
 
-        loadAttendance(sessionId);
+        if (sessionId != null) {
+            loadAttendance(sessionId);
+        }
     }
 
     // ================= LOAD ATTENDANCE =================
@@ -73,13 +78,50 @@ public class TeacherAttendanceListActivity extends AppCompatActivity {
                 });
     }
 
-    // ================= BACK BUTTON =================
+    // ================= MENU =================
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        return true;
+    }
+
+    // ================= TOOLBAR ACTIONS =================
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
+
+        // ⬅ BACK BUTTON
         if (item.getItemId() == android.R.id.home) {
-            finish();
+            goToTeacherDashboard();
             return true;
         }
+
+        // 🔓 LOGOUT
+        if (item.getItemId() == R.id.action_logout) {
+            FirebaseAuth.getInstance().signOut();
+            goToWelcome();
+            return true;
+        }
+
         return super.onOptionsItemSelected(item);
+    }
+
+    // ================= MOBILE BACK =================
+    @Override
+    public void onBackPressed() {
+        goToTeacherDashboard();
+    }
+
+    // ================= NAVIGATION HELPERS =================
+    private void goToTeacherDashboard() {
+        Intent intent = new Intent(this, TeacherDashboardActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        startActivity(intent);
+        finish();
+    }
+
+    private void goToWelcome() {
+        Intent intent = new Intent(this, MainActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
     }
 }
