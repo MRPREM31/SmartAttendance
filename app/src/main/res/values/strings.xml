@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">SmartAttendance</string>
+    <string name="logout">Logout</string>
+    <string name="app_toolbar_title">NIST University</string>
+</resources>

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "690395921842",
+    "project_id": "smartattendance-gdg",
+    "storage_bucket": "smartattendance-gdg.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:690395921842:android:e77a536edcd024288d78ab",
+        "android_client_info": {
+          "package_name": "com.college.smartattendance"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAkhPnGlfCVeFrB7Wl_s6Lmu2bKqYx20ho"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
