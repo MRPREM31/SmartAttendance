@@ -54,13 +54,8 @@ public class TeacherDashboardActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.teacher_dashboard);
 
-        // 🔷 TOOLBAR
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        if (getSupportActionBar() != null) {
-            getSupportActionBar().setTitle("Teacher Dashboard");
-            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        }
 
         auth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
@@ -77,96 +72,72 @@ public class TeacherDashboardActivity extends AppCompatActivity {
         startDateTimeUpdater();
         loadTeacherGreeting();
 
-        String[] subjects = {
-                "GEE", "CI", "FLAT", "OS", "PYTHON", "AI",
-                "RES", "FLAT LAB", "OS LAB", "PYTHON LAB"
-        };
-
-        String[] times = {
-                "08:00-09:00", "09:00-10:00", "10:00-11:00",
-                "11:00-12:00", "12:00-01:00", "01:00-02:00",
-                "02:00-03:00", "03:00-04:00", "04:00-05:00"
-        };
-
         spinnerSubject.setAdapter(new ArrayAdapter<>(
-                this, android.R.layout.simple_spinner_dropdown_item, subjects));
+                this,
+                android.R.layout.simple_spinner_dropdown_item,
+                new String[]{"GEE","CI","FLAT","OS","PYTHON","AI","RES","FLAT LAB","OS LAB","PYTHON LAB"}
+        ));
 
         spinnerTime.setAdapter(new ArrayAdapter<>(
-                this, android.R.layout.simple_spinner_dropdown_item, times));
+                this,
+                android.R.layout.simple_spinner_dropdown_item,
+                new String[]{
+                        "08:00-09:00","09:00-10:00","10:00-11:00",
+                        "11:00-12:00","12:00-01:00","01:00-02:00",
+                        "02:00-03:00","03:00-04:00","04:00-05:00"
+                }
+        ));
 
         btnGenerateQR.setOnClickListener(v -> fetchTeacherNameAndCreateSession());
-
         btnViewAttendance.setOnClickListener(v ->
                 startActivity(new Intent(this, AttendanceReportActivity.class)));
     }
 
     // ================= GREETING =================
     private void loadTeacherGreeting() {
-
         FirebaseUser user = auth.getCurrentUser();
         if (user == null) return;
 
-        db.collection("users")
-                .document(user.getUid())
+        db.collection("users").document(user.getUid())
                 .get()
                 .addOnSuccessListener(doc -> {
-
                     String name = doc.getString("name");
-                    if (name == null || name.isEmpty()) name = "Teacher";
-
-                    String greeting = getGreetingByTime();
-                    txtGreeting.setText("Hi " + name + ", " + greeting + " 👋");
+                    if (name == null) name = "Teacher";
+                    txtGreeting.setText("Hi " + name + ", " + getGreetingByTime() + " 👋");
                 });
     }
 
     private String getGreetingByTime() {
-        int hour = Integer.parseInt(
-                new SimpleDateFormat("HH", Locale.getDefault()).format(new Date()));
-
-        if (hour >= 5 && hour < 12) return "Good Morning";
-        if (hour >= 12 && hour < 17) return "Good Afternoon";
-        if (hour >= 17 && hour < 21) return "Good Evening";
+        int hour = Integer.parseInt(new SimpleDateFormat("HH", Locale.getDefault()).format(new Date()));
+        if (hour < 12) return "Good Morning";
+        if (hour < 17) return "Good Afternoon";
+        if (hour < 21) return "Good Evening";
         return "Good Night";
     }
 
-    // ================= LIVE DATE & TIME =================
+    // ================= DATE TIME =================
     private void startDateTimeUpdater() {
-        Handler handler = new Handler();
-        handler.post(new Runnable() {
-            @Override
-            public void run() {
-                String dateTime = new SimpleDateFormat(
-                        "dd-MM-yyyy | hh:mm:ss a",
-                        Locale.getDefault()
-                ).format(new Date());
-
-                txtDateTime.setText(dateTime);
-                handler.postDelayed(this, 1000);
-            }
+        Handler h = new Handler();
+        h.post(() -> {
+            txtDateTime.setText(new SimpleDateFormat(
+                    "dd-MM-yyyy | hh:mm:ss a", Locale.getDefault()).format(new Date()));
+            h.postDelayed(this::startDateTimeUpdater, 1000);
         });
     }
 
-    // ================= FETCH TEACHER =================
+    // ================= CREATE SESSION =================
     private void fetchTeacherNameAndCreateSession() {
-
         FirebaseUser user = auth.getCurrentUser();
         if (user == null) return;
 
-        db.collection("users")
-                .document(user.getUid())
-                .get()
+        db.collection("users").document(user.getUid()).get()
                 .addOnSuccessListener(doc -> {
-
                     String teacherName = doc.getString("name");
-                    if (teacherName == null || teacherName.isEmpty()) {
-                        teacherName = "Teacher";
-                    }
-
+                    if (teacherName == null) teacherName = "Teacher";
                     generateQRSession(user, teacherName);
                 });
     }
 
-    // ================= CREATE SESSION =================
     private void generateQRSession(FirebaseUser user, String teacherName) {
 
         currentSessionId = UUID.randomUUID().toString();
@@ -182,18 +153,20 @@ public class TeacherDashboardActivity extends AppCompatActivity {
         session.put("status", "ACTIVE");
         session.put("totalPresent", 0);
 
+        // 🔥 FIRESTORE SAVE
         db.collection("attendance_sessions")
                 .document(currentSessionId)
                 .set(session);
+
+        // 🔥 GOOGLE SHEET SAVE
+        sendToGoogleSheet("attendance_sessions", session);
 
         try {
             Bitmap bitmap = new BarcodeEncoder().encodeBitmap(
                     currentSessionId + "|" + expiry,
                     BarcodeFormat.QR_CODE, 400, 400);
             imgQR.setImageBitmap(bitmap);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        } catch (Exception ignored) {}
 
         txtCountdown.setVisibility(TextView.VISIBLE);
         btnGenerateQR.setEnabled(false);
@@ -204,11 +177,62 @@ public class TeacherDashboardActivity extends AppCompatActivity {
             }
 
             public void onFinish() {
-                txtCountdown.setText("Session Completed");
-                btnGenerateQR.setEnabled(true);
-                imgQR.setImageDrawable(null);
+                endSession();
             }
         }.start();
+    }
+
+    // ================= END SESSION =================
+    private void endSession() {
+
+        db.collection("attendance_records")
+                .whereEqualTo("sessionId", currentSessionId)
+                .get()
+                .addOnSuccessListener(qs -> {
+
+                    int total = qs.size();
+
+                    Map<String, Object> update = new HashMap<>();
+                    update.put("status", "COMPLETED");
+                    update.put("totalPresent", total);
+                    update.put("sessionId", currentSessionId);
+
+                    // 🔥 UPDATE FIRESTORE
+                    db.collection("attendance_sessions")
+                            .document(currentSessionId)
+                            .update(update);
+
+                    // 🔥 UPDATE GOOGLE SHEET
+                    sendToGoogleSheet("attendance_sessions", update);
+
+                    txtCountdown.setText("Session Completed");
+                    btnGenerateQR.setEnabled(true);
+                    imgQR.setImageDrawable(null);
+                });
+    }
+
+    // ================= GOOGLE SHEET =================
+    private void sendToGoogleSheet(String collection, Map<String, Object> data) {
+        new Thread(() -> {
+            try {
+                URL url = new URL(GOOGLE_SCRIPT_URL);
+                HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                conn.setRequestMethod("POST");
+                conn.setRequestProperty("Content-Type", "application/json");
+                conn.setDoOutput(true);
+
+                JSONObject payload = new JSONObject();
+                payload.put("collection", collection);
+                payload.put("data", new JSONObject(data));
+
+                OutputStream os = conn.getOutputStream();
+                os.write(payload.toString().getBytes());
+                os.flush();
+                os.close();
+                conn.getResponseCode();
+                conn.disconnect();
+            } catch (Exception ignored) {}
+        }).start();
     }
 
     // ================= MENU =================
@@ -220,16 +244,9 @@ public class TeacherDashboardActivity extends AppCompatActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-
-        if (item.getItemId() == android.R.id.home ||
-                item.getItemId() == R.id.action_logout) {
-
-            FirebaseAuth.getInstance().signOut();
-            Intent intent = new Intent(this, MainActivity.class);
-            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-            startActivity(intent);
-            return true;
-        }
-        return super.onOptionsItemSelected(item);
+        FirebaseAuth.getInstance().signOut();
+        startActivity(new Intent(this, MainActivity.class));
+        finish();
+        return true;
     }
 }

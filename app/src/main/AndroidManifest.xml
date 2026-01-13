@@ -1,11 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.college.smartattendance">
+
     <!-- 🔐 PERMISSIONS -->
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-    <uses-permission android:name="android.permission.INTERNET" /> <!-- 📷 Camera feature -->
+    <uses-permission android:name="android.permission.INTERNET" />
+
     <uses-feature
         android:name="android.hardware.camera"
         android:required="false" />
@@ -17,37 +19,34 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.SmartAttendance">
+
+        <!-- 📷 ZXING SCANNER -->
+        <activity
+            android:name=".CustomCaptureActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.AppCompat.NoActionBar"
+            android:exported="false" />
+
         <activity
             android:name=".AttendanceReportActivity"
             android:exported="false" />
+
         <!-- 🚀 LAUNCHER -->
         <activity
             android:name=".WelcomeActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-        </activity> <!-- 🔐 LOGIN -->
-        <activity
-            android:name=".MainActivity"
-            android:exported="false" /> <!-- 👥 ROLE -->
-        <activity
-            android:name=".RoleSelectActivity"
-            android:exported="false" /> <!-- 👨‍🏫 TEACHER DASHBOARD -->
-        <activity
-            android:name=".TeacherDashboardActivity"
-            android:exported="false" /> <!-- 📋 TEACHER ATTENDANCE LIST (PHASE 3) -->
-        <activity
-            android:name=".TeacherAttendanceListActivity"
-            android:exported="false" /> <!-- 👨‍🎓 STUDENT DASHBOARD -->
-        <activity
-            android:name=".StudentDashboardActivity"
-            android:exported="false" /> <!-- ✅ ATTENDANCE SUCCESS -->
-        <activity
-            android:name=".AttendanceSuccessActivity"
-            android:exported="false" />
-    </application>
+        </activity>
 
+        <activity android:name=".MainActivity" android:exported="false" />
+        <activity android:name=".RoleSelectActivity" android:exported="false" />
+        <activity android:name=".TeacherDashboardActivity" android:exported="false" />
+        <activity android:name=".TeacherAttendanceListActivity" android:exported="false" />
+        <activity android:name=".StudentDashboardActivity" android:exported="false" />
+        <activity android:name=".AttendanceSuccessActivity" android:exported="false" />
+
+    </application>
 </manifest>
