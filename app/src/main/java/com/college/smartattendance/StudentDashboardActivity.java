@@ -48,7 +48,7 @@ public class StudentDashboardActivity extends AppCompatActivity {
 
     // 🔗 GOOGLE APPS SCRIPT URL
     private static final String GOOGLE_SCRIPT_URL =
-            "https://script.google.com/macros/s/AKfycbyXDIhZQwvYPSnzMj9EmYsLFg5WduUsNZ1M87n4gM7Z-x11-50a1UgAr91K5qv1uPtG/exec";
+            "https://script.google.com/macros/s/AKfycbxarlUMGk9HjBb3F4I3RllhYGVJblff7qvQgdi-g0Ey9xHA1bLkHh9jKAibItThop6G/exec";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

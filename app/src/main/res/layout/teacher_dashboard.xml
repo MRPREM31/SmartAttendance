@@ -8,7 +8,7 @@
     android:fitsSystemWindows="true">
 
     <!-- 🔷 TOOLBAR -->
-    <include layout="@layout/toolbar_main"/>
+    <include layout="@layout/toolbar_main" />
 
     <!-- 🔷 CONTENT -->
     <ScrollView
@@ -36,7 +36,7 @@
                     android:layout_height="match_parent"
                     android:src="@drawable/teacher_logo"
                     android:padding="18dp"
-                    android:background="#FFFFFF"/>
+                    android:background="#FFFFFF" />
             </androidx.cardview.widget.CardView>
 
             <!-- TITLE -->
@@ -47,7 +47,18 @@
                 android:textSize="22sp"
                 android:textStyle="bold"
                 android:textColor="#1A237E"
-                android:layout_marginBottom="24dp"/>
+                android:layout_marginBottom="8dp" />
+
+            <!-- 📅 AUTO DATE & TIME -->
+            <TextView
+                android:id="@+id/txtDateTime"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Date And Time"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:textColor="#37474F"
+                android:layout_marginBottom="24dp" />
 
             <!-- SUBJECT -->
             <TextView
@@ -56,7 +67,7 @@
                 android:textStyle="bold"
                 android:layout_marginBottom="6dp"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"/>
+                android:layout_height="wrap_content" />
 
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
@@ -73,17 +84,17 @@
                     android:background="@android:drawable/btn_dropdown"
                     android:backgroundTint="#3F51B5"
                     android:paddingStart="16dp"
-                    android:paddingEnd="16dp"/>
+                    android:paddingEnd="16dp" />
             </androidx.cardview.widget.CardView>
 
-            <!-- TIME -->
+            <!-- TIME SLOT -->
             <TextView
                 android:text="Select Time Slot"
                 android:textColor="#3F51B5"
                 android:textStyle="bold"
                 android:layout_marginBottom="6dp"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"/>
+                android:layout_height="wrap_content" />
 
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
@@ -100,7 +111,7 @@
                     android:background="@android:drawable/btn_dropdown"
                     android:backgroundTint="#3F51B5"
                     android:paddingStart="16dp"
-                    android:paddingEnd="16dp"/>
+                    android:paddingEnd="16dp" />
             </androidx.cardview.widget.CardView>
 
             <!-- COUNTDOWN -->
@@ -112,9 +123,9 @@
                 android:textColor="#D32F2F"
                 android:textStyle="bold"
                 android:visibility="gone"
-                android:layout_marginBottom="16dp"/>
+                android:layout_marginBottom="16dp" />
 
-            <!-- BUTTON -->
+            <!-- GENERATE QR BUTTON -->
             <Button
                 android:id="@+id/btnGenerateQR"
                 android:layout_width="match_parent"
@@ -126,9 +137,9 @@
                 android:textColor="#FFFFFF"
                 android:backgroundTint="#3F51B5"
                 android:elevation="8dp"
-                android:layout_marginBottom="24dp"/>
+                android:layout_marginBottom="24dp" />
 
-            <!-- QR -->
+            <!-- QR DISPLAY -->
             <androidx.cardview.widget.CardView
                 android:layout_width="260dp"
                 android:layout_height="260dp"
@@ -141,7 +152,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:padding="16dp"
-                    android:background="#E8EBFF"/>
+                    android:background="#E8EBFF" />
             </androidx.cardview.widget.CardView>
 
         </LinearLayout>

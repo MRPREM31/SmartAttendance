@@ -3,9 +3,14 @@ package com.college.smartattendance;
 import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.os.CountDownTimer;
+import android.os.Handler;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.*;
+import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.Spinner;
+import android.widget.TextView;
+import android.widget.ArrayAdapter;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
@@ -22,30 +27,34 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Locale;
+import java.util.Map;
+import java.util.UUID;
 
 public class TeacherDashboardActivity extends AppCompatActivity {
 
     Spinner spinnerSubject, spinnerTime;
     Button btnGenerateQR;
     ImageView imgQR;
-    TextView txtCountdown;
+    TextView txtCountdown, txtDateTime;
 
     FirebaseAuth auth;
     FirebaseFirestore db;
 
     String currentSessionId = "";
 
-    // 🔗 GOOGLE APPS SCRIPT WEB APP URL (FROM YOU)
+    // 🔗 Google Apps Script Web App URL
     private static final String GOOGLE_SCRIPT_URL =
-            "https://script.google.com/macros/s/AKfycbyXDIhZQwvYPSnzMj9EmYsLFg5WduUsNZ1M87n4gM7Z-x11-50a1UgAr91K5qv1uPtG/exec";
+            "https://script.google.com/macros/s/AKfycbxarlUMGk9HjBb3F4I3RllhYGVJblff7qvQgdi-g0Ey9xHA1bLkHh9jKAibItThop6G/exec";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.teacher_dashboard);
 
-        // 🔷 TOOLBAR
+        // 🔷 Toolbar
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         if (getSupportActionBar() != null) {
@@ -60,15 +69,20 @@ public class TeacherDashboardActivity extends AppCompatActivity {
         btnGenerateQR = findViewById(R.id.btnGenerateQR);
         imgQR = findViewById(R.id.imgQR);
         txtCountdown = findViewById(R.id.txtCountdown);
+        txtDateTime = findViewById(R.id.txtDateTime);
+
+        startDateTimeUpdater();
 
         String[] subjects = {
-                "GEE","CI","FLAT","OS","PYTHON","AI",
-                "RES","FLAT LAB","OS LAB","PYTHON LAB"
+                "GEE", "CI", "FLAT", "OS", "PYTHON", "AI",
+                "RES", "FLAT LAB", "OS LAB", "PYTHON LAB"
         };
 
         String[] times = {
-                "08:00-09:00","09:00-10:00",
-                "11:00-12:00","01:00-02:00",
+                "08:00-09:00",
+                "09:00-10:00",
+                "11:00-12:00",
+                "01:00-02:00",
                 "05:00-06:00"
         };
 
@@ -87,6 +101,24 @@ public class TeacherDashboardActivity extends AppCompatActivity {
         btnGenerateQR.setOnClickListener(v -> generateQRSession());
     }
 
+    // ================= LIVE DATE & TIME =================
+    private void startDateTimeUpdater() {
+        Handler handler = new Handler();
+        Runnable runnable = new Runnable() {
+            @Override
+            public void run() {
+                String dateTime = new SimpleDateFormat(
+                        "dd-MM-yyyy | hh:mm:ss a",
+                        Locale.getDefault()
+                ).format(new Date());
+
+                txtDateTime.setText(dateTime);
+                handler.postDelayed(this, 1000);
+            }
+        };
+        handler.post(runnable);
+    }
+
     // ================= CREATE SESSION =================
     private void generateQRSession() {
 
@@ -96,7 +128,6 @@ public class TeacherDashboardActivity extends AppCompatActivity {
         currentSessionId = UUID.randomUUID().toString();
         long expiry = System.currentTimeMillis() + 60000;
 
-        // 🔹 Teacher name from email
         String teacherName = "Teacher";
         if (user.getEmail() != null) {
             teacherName = user.getEmail()
@@ -104,8 +135,15 @@ public class TeacherDashboardActivity extends AppCompatActivity {
                     .replace(".", " ");
         }
 
-        String startTime = new SimpleDateFormat(
-                "HH:mm:ss", Locale.getDefault()
+        // 📅 Date & Time
+        String date = new SimpleDateFormat(
+                "dd-MM-yyyy",
+                Locale.getDefault()
+        ).format(new Date());
+
+        String time = new SimpleDateFormat(
+                "hh:mm:ss a",
+                Locale.getDefault()
         ).format(new Date());
 
         Map<String, Object> session = new HashMap<>();
@@ -113,18 +151,19 @@ public class TeacherDashboardActivity extends AppCompatActivity {
         session.put("teacherId", user.getUid());
         session.put("teacherName", teacherName);
         session.put("subject", spinnerSubject.getSelectedItem().toString());
-        session.put("time", spinnerTime.getSelectedItem().toString());
-        session.put("startTime", startTime);
+        session.put("timeSlot", spinnerTime.getSelectedItem().toString());
+        session.put("date", date);
+        session.put("time", time);
         session.put("expiresAt", expiry);
         session.put("status", "ACTIVE");
         session.put("totalPresent", 0);
 
-        // 🔹 SAVE TO FIREBASE (UNCHANGED)
+        // 🔹 Firebase
         db.collection("attendance_sessions")
                 .document(currentSessionId)
                 .set(session);
 
-        // 🔹 ALSO SAVE TO GOOGLE SHEET (attendance_sessions TAB)
+        // 🔹 Google Sheet
         sendToGoogleSheet("attendance_sessions", session);
 
         // 🔹 Generate QR
@@ -137,12 +176,13 @@ public class TeacherDashboardActivity extends AppCompatActivity {
                     400
             );
             imgQR.setImageBitmap(bitmap);
-        } catch (Exception ignored) {}
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
         txtCountdown.setVisibility(TextView.VISIBLE);
         btnGenerateQR.setEnabled(false);
 
-        // 🔹 Countdown
         new CountDownTimer(60000, 1000) {
 
             public void onTick(long ms) {
@@ -163,7 +203,6 @@ public class TeacherDashboardActivity extends AppCompatActivity {
         imgQR.setImageDrawable(null);
         btnGenerateQR.setEnabled(true);
 
-        // 🔹 Count students
         db.collection("attendance_records")
                 .whereEqualTo("sessionId", currentSessionId)
                 .get()
@@ -174,19 +213,17 @@ public class TeacherDashboardActivity extends AppCompatActivity {
                     Map<String, Object> update = new HashMap<>();
                     update.put("status", "COMPLETED");
                     update.put("totalPresent", totalStudents);
+                    update.put("sessionId", currentSessionId);
 
-                    // 🔹 UPDATE FIREBASE
                     db.collection("attendance_sessions")
                             .document(currentSessionId)
                             .update(update);
 
-                    // 🔹 UPDATE GOOGLE SHEET (NEW ROW WITH FINAL DATA)
-                    update.put("sessionId", currentSessionId);
                     sendToGoogleSheet("attendance_sessions", update);
                 });
     }
 
-    // ================= GOOGLE SHEET SYNC (FREE) =================
+    // ================= GOOGLE SHEET =================
     private void sendToGoogleSheet(String collection, Map<String, Object> data) {
 
         new Thread(() -> {
