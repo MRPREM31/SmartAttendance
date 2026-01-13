@@ -240,8 +240,12 @@ public class StudentDashboardActivity extends AppCompatActivity {
                             "Attendance marked successfully",
                             Toast.LENGTH_SHORT).show();
 
-                    startActivity(new Intent(
-                            this, AttendanceSuccessActivity.class));
+                    Intent intent = new Intent(this, AttendanceSuccessActivity.class);
+                    intent.putExtra("studentName", studentName);
+                    intent.putExtra("subject", sessionDoc.getString("subject"));
+                    intent.putExtra("timeSlot", sessionDoc.getString("timeSlot"));
+                    intent.putExtra("teacherName", sessionDoc.getString("teacherName"));
+                    startActivity(intent);
                 });
     }
 
@@ -292,12 +296,24 @@ public class StudentDashboardActivity extends AppCompatActivity {
         }
 
         if (item.getItemId() == R.id.action_logout) {
+
             FirebaseAuth.getInstance().signOut();
-            startActivity(new Intent(this, MainActivity.class));
-            finish();
+
+            Intent intent = new Intent(this, MainActivity.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            startActivity(intent);
             return true;
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    // ================= BACK BUTTON FIX =================
+    @Override
+    public void onBackPressed() {
+
+        Intent intent = new Intent(this, MainActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
     }
 }
