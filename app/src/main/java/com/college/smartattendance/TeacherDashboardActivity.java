@@ -46,7 +46,6 @@ public class TeacherDashboardActivity extends AppCompatActivity {
 
     String currentSessionId = "";
 
-    // 🔗 Google Apps Script Web App URL
     private static final String GOOGLE_SCRIPT_URL =
             "https://script.google.com/macros/s/AKfycbxarlUMGk9HjBb3F4I3RllhYGVJblff7qvQgdi-g0Ey9xHA1bLkHh9jKAibItThop6G/exec";
 
@@ -55,7 +54,6 @@ public class TeacherDashboardActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.teacher_dashboard);
 
-        // 🔷 Toolbar
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         if (getSupportActionBar() != null) {
@@ -83,10 +81,15 @@ public class TeacherDashboardActivity extends AppCompatActivity {
         String[] times = {
                 "08:00-09:00",
                 "09:00-10:00",
+                "10:00-11:00",
                 "11:00-12:00",
+                "12:00-01:00",
                 "01:00-02:00",
-                "05:00-06:00"
+                "02:00-03:00",
+                "03:00-04:00",
+                "04:00-05:00"
         };
+
 
         spinnerSubject.setAdapter(new ArrayAdapter<>(
                 this,
@@ -100,9 +103,8 @@ public class TeacherDashboardActivity extends AppCompatActivity {
                 times
         ));
 
-        btnGenerateQR.setOnClickListener(v -> generateQRSession());
+        btnGenerateQR.setOnClickListener(v -> fetchTeacherNameAndCreateSession());
 
-        // ✅ VIEW ATTENDANCE BUTTON ACTION
         btnViewAttendance.setOnClickListener(v ->
                 startActivity(new Intent(
                         TeacherDashboardActivity.this,
@@ -129,21 +131,31 @@ public class TeacherDashboardActivity extends AppCompatActivity {
         handler.post(runnable);
     }
 
-    // ================= CREATE SESSION =================
-    private void generateQRSession() {
+    // ================= FETCH TEACHER NAME =================
+    private void fetchTeacherNameAndCreateSession() {
 
         FirebaseUser user = auth.getCurrentUser();
         if (user == null) return;
 
+        db.collection("users")
+                .document(user.getUid())
+                .get()
+                .addOnSuccessListener(doc -> {
+
+                    String teacherName = doc.getString("name");
+                    if (teacherName == null || teacherName.isEmpty()) {
+                        teacherName = "Teacher";
+                    }
+
+                    generateQRSession(user, teacherName);
+                });
+    }
+
+    // ================= CREATE SESSION =================
+    private void generateQRSession(FirebaseUser user, String teacherName) {
+
         currentSessionId = UUID.randomUUID().toString();
         long expiry = System.currentTimeMillis() + 60000;
-
-        String teacherName = "Teacher";
-        if (user.getEmail() != null) {
-            teacherName = user.getEmail()
-                    .split("@")[0]
-                    .replace(".", " ");
-        }
 
         String date = new SimpleDateFormat(
                 "dd-MM-yyyy",
@@ -217,12 +229,12 @@ public class TeacherDashboardActivity extends AppCompatActivity {
                     Map<String, Object> update = new HashMap<>();
                     update.put("status", "COMPLETED");
                     update.put("totalPresent", totalStudents);
-                    update.put("sessionId", currentSessionId);
 
                     db.collection("attendance_sessions")
                             .document(currentSessionId)
                             .update(update);
 
+                    update.put("sessionId", currentSessionId);
                     sendToGoogleSheet("attendance_sessions", update);
                 });
     }

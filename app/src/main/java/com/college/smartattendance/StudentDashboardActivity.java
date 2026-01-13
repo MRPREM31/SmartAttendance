@@ -46,7 +46,6 @@ public class StudentDashboardActivity extends AppCompatActivity {
     private static final double CLASS_LNG = 85.004503;
     private static final float ALLOWED_RADIUS = 150;
 
-    // 🔗 GOOGLE APPS SCRIPT URL
     private static final String GOOGLE_SCRIPT_URL =
             "https://script.google.com/macros/s/AKfycbxarlUMGk9HjBb3F4I3RllhYGVJblff7qvQgdi-g0Ey9xHA1bLkHh9jKAibItThop6G/exec";
 
@@ -74,9 +73,8 @@ public class StudentDashboardActivity extends AppCompatActivity {
     private void checkLocationThenScan() {
 
         if (ActivityCompat.checkSelfPermission(
-                this,
-                Manifest.permission.ACCESS_FINE_LOCATION
-        ) != PackageManager.PERMISSION_GRANTED) {
+                this, Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
 
             ActivityCompat.requestPermissions(
                     this,
@@ -130,7 +128,7 @@ public class StudentDashboardActivity extends AppCompatActivity {
 
                 String[] data = result.getContents().split("\\|");
                 if (data.length != 2) {
-                    Toast.makeText(this, "Invalid QR format", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "Invalid QR", Toast.LENGTH_SHORT).show();
                     return;
                 }
 
@@ -179,26 +177,41 @@ public class StudentDashboardActivity extends AppCompatActivity {
                                 "Attendance already marked from this device",
                                 Toast.LENGTH_LONG).show();
                     } else {
-                        saveAttendance(sessionId, deviceId, sessionDoc);
+                        fetchStudentNameAndSave(sessionId, deviceId, sessionDoc);
                     }
+                });
+    }
+
+    // ================= FETCH NAME FROM USERS =================
+    private void fetchStudentNameAndSave(String sessionId,
+                                         String deviceId,
+                                         DocumentSnapshot sessionDoc) {
+
+        FirebaseUser user = auth.getCurrentUser();
+        if (user == null) return;
+
+        db.collection("users")
+                .document(user.getUid())
+                .get()
+                .addOnSuccessListener(userDoc -> {
+
+                    String studentName = userDoc.getString("name");
+                    if (studentName == null || studentName.isEmpty()) {
+                        studentName = "Unknown Student";
+                    }
+
+                    saveAttendance(sessionId, deviceId, sessionDoc, studentName);
                 });
     }
 
     // ================= SAVE ATTENDANCE =================
     private void saveAttendance(String sessionId,
                                 String deviceId,
-                                DocumentSnapshot sessionDoc) {
+                                DocumentSnapshot sessionDoc,
+                                String studentName) {
 
         FirebaseUser user = auth.getCurrentUser();
         if (user == null) return;
-
-        String uid = user.getUid();
-        String email = user.getEmail();
-
-        String studentName = "Student";
-        if (email != null) {
-            studentName = email.split("@")[0].replace(".", " ");
-        }
 
         String date = new SimpleDateFormat(
                 "yyyy-MM-dd", Locale.getDefault()).format(new Date());
@@ -207,7 +220,7 @@ public class StudentDashboardActivity extends AppCompatActivity {
 
         Map<String, Object> record = new HashMap<>();
         record.put("sessionId", sessionId);
-        record.put("studentId", uid);
+        record.put("studentId", user.getUid());
         record.put("studentName", studentName);
         record.put("deviceId", deviceId);
         record.put("status", "PRESENT");
@@ -217,12 +230,10 @@ public class StudentDashboardActivity extends AppCompatActivity {
         record.put("classTime", sessionDoc.getString("time"));
         record.put("teacherId", sessionDoc.getString("teacherId"));
 
-        // 🔹 SAVE TO FIREBASE
         db.collection("attendance_records")
                 .add(record)
                 .addOnSuccessListener(v -> {
 
-                    // 🔥 ALSO SAVE TO GOOGLE SHEET
                     sendToGoogleSheet("attendance_records", record);
 
                     Toast.makeText(this,
@@ -234,7 +245,7 @@ public class StudentDashboardActivity extends AppCompatActivity {
                 });
     }
 
-    // ================= GOOGLE SHEET SYNC =================
+    // ================= GOOGLE SHEET =================
     private void sendToGoogleSheet(String collection, Map<String, Object> data) {
 
         new Thread(() -> {
