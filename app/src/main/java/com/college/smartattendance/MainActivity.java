@@ -20,7 +20,7 @@ import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
 
-    EditText edtEmail, edtPassword;
+    EditText edtName, edtEmail, edtPassword;
     RadioButton rbStudent, rbTeacher;
     Button btnLogin, btnSignup;
 
@@ -29,7 +29,7 @@ public class MainActivity extends AppCompatActivity {
 
     // 🔗 GOOGLE APPS SCRIPT WEB APP URL
     private static final String GOOGLE_SCRIPT_URL =
-            "https://script.google.com/macros/s/AKfycbyiXArextrF6QKsrvt9QSBCqkjnGnOsrZFiHynrrlBPo6oh7ipyvjsHDMhGfiKaJVXy/exec";
+            "https://script.google.com/macros/s/AKfycbyXDIhZQwvYPSnzMj9EmYsLFg5WduUsNZ1M87n4gM7Z-x11-50a1UgAr91K5qv1uPtG/exec";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,6 +39,7 @@ public class MainActivity extends AppCompatActivity {
         auth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
 
+        edtName = findViewById(R.id.edtName);
         edtEmail = findViewById(R.id.edtEmail);
         edtPassword = findViewById(R.id.edtPassword);
         rbStudent = findViewById(R.id.rbStudent);
@@ -46,7 +47,6 @@ public class MainActivity extends AppCompatActivity {
         btnLogin = findViewById(R.id.btnLogin);
         btnSignup = findViewById(R.id.btnSignup);
 
-        // 🔁 AUTO LOGIN
         if (auth.getCurrentUser() != null) {
             redirectUser(auth.getCurrentUser().getUid());
         }
@@ -58,11 +58,12 @@ public class MainActivity extends AppCompatActivity {
     // ================= SIGN UP =================
     private void signup() {
 
+        String name = edtName.getText().toString().trim();
         String email = edtEmail.getText().toString().trim();
         String password = edtPassword.getText().toString().trim();
         String role = rbTeacher.isChecked() ? "teacher" : "student";
 
-        if (email.isEmpty() || password.isEmpty()) {
+        if (name.isEmpty() || email.isEmpty() || password.isEmpty()) {
             Toast.makeText(this, "Fill all fields", Toast.LENGTH_SHORT).show();
             return;
         }
@@ -83,24 +84,23 @@ public class MainActivity extends AppCompatActivity {
 
                     Map<String, Object> user = new HashMap<>();
                     user.put("uid", uid);
+                    user.put("name", name);
                     user.put("email", email);
                     user.put("role", role);
                     user.put("deviceId", deviceId);
                     user.put("createdAt", System.currentTimeMillis());
 
-                    // 🔹 SAVE TO FIREBASE
+                    // 🔥 FIREBASE
                     db.collection("users")
                             .document(uid)
                             .set(user)
                             .addOnSuccessListener(v -> {
 
-                                // 🔥 ALSO SAVE TO GOOGLE SHEET (users tab)
+                                // 📊 GOOGLE SHEET
                                 sendToGoogleSheet("users", user);
 
                                 openDashboard(role);
-                            })
-                            .addOnFailureListener(e ->
-                                    Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show());
+                            });
                 })
                 .addOnFailureListener(e ->
                         Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show());
@@ -125,16 +125,11 @@ public class MainActivity extends AppCompatActivity {
                         Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show());
     }
 
-    // ================= REDIRECT BASED ON ROLE =================
+    // ================= REDIRECT =================
     private void redirectUser(String uid) {
 
         db.collection("users").document(uid).get()
                 .addOnSuccessListener(doc -> {
-
-                    if (!doc.exists()) {
-                        Toast.makeText(this, "User data not found", Toast.LENGTH_LONG).show();
-                        return;
-                    }
 
                     String role = doc.getString("role");
 
@@ -144,12 +139,9 @@ public class MainActivity extends AppCompatActivity {
                         startActivity(new Intent(this, StudentDashboardActivity.class));
                     }
                     finish();
-                })
-                .addOnFailureListener(e ->
-                        Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show());
+                });
     }
 
-    // ================= OPEN DASHBOARD =================
     private void openDashboard(String role) {
 
         if ("teacher".equals(role)) {
@@ -160,14 +152,13 @@ public class MainActivity extends AppCompatActivity {
         finish();
     }
 
-    // ================= GOOGLE SHEET SYNC (FREE) =================
+    // ================= GOOGLE SHEET =================
     private void sendToGoogleSheet(String collection, Map<String, Object> data) {
 
         new Thread(() -> {
             try {
                 URL url = new URL(GOOGLE_SCRIPT_URL);
-                HttpURLConnection conn =
-                        (HttpURLConnection) url.openConnection();
+                HttpURLConnection conn = (HttpURLConnection) url.openConnection();
 
                 conn.setRequestMethod("POST");
                 conn.setRequestProperty("Content-Type", "application/json");

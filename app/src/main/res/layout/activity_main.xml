@@ -30,12 +30,23 @@
         android:text="NIST University Attendance System"
         android:textSize="14sp"
         android:textColor="#666666"
-        android:layout_marginBottom="28dp"
+        android:layout_marginBottom="24dp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"/>
 
-    <!-- Email -->
-    <!-- Email -->
+    <!-- 👤 NAME -->
+    <EditText
+        android:id="@+id/edtName"
+        android:hint="Your Name"
+        android:inputType="textPersonName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="12dp"
+        android:backgroundTint="#3F51B5"
+        android:textColor="#1A237E"
+        android:textColorHint="#3F51B5"/>
+
+    <!-- 📧 Email -->
     <EditText
         android:id="@+id/edtEmail"
         android:hint="Email (@nist.edu)"
@@ -47,7 +58,7 @@
         android:textColor="#1A237E"
         android:textColorHint="#3F51B5"/>
 
-    <!-- Password -->
+    <!-- 🔒 Password -->
     <EditText
         android:id="@+id/edtPassword"
         android:hint="Password"
@@ -59,8 +70,7 @@
         android:textColor="#1A237E"
         android:textColorHint="#3F51B5"/>
 
-
-    <!-- Role Selection -->
+    <!-- 🎭 Role -->
     <RadioGroup
         android:orientation="horizontal"
         android:layout_marginBottom="20dp"
@@ -69,20 +79,19 @@
 
         <RadioButton
             android:id="@+id/rbStudent"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:text="Student"
             android:textColor="#1A237E"
-            android:checked="true"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
+            android:checked="true"/>
 
         <RadioButton
             android:id="@+id/rbTeacher"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:text="Teacher"
             android:textColor="#1A237E"
-            android:layout_marginStart="24dp"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
-
+            android:layout_marginStart="24dp"/>
     </RadioGroup>
 
 
