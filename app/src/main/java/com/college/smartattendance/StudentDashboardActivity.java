@@ -346,6 +346,7 @@ public class StudentDashboardActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    @SuppressWarnings("MissingSuperCall")
     @Override
     public void onBackPressed() {
         goToWelcome();
