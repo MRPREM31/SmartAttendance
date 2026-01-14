@@ -265,36 +265,50 @@ public class StudentDashboardActivity extends AppCompatActivity {
 
         String date = new SimpleDateFormat(
                 "yyyy-MM-dd", Locale.getDefault()).format(new Date());
+
         String time = new SimpleDateFormat(
                 "HH:mm:ss", Locale.getDefault()).format(new Date());
+
+        // 🔥 FETCH FROM SESSION
+        String teacherId = sessionDoc.getString("teacherId");
+        String subject = sessionDoc.getString("subject");
+        String timeSlot = sessionDoc.getString("timeSlot");
+        String teacherName = sessionDoc.getString("teacherName");
 
         Map<String, Object> record = new HashMap<>();
         record.put("sessionId", sessionId);
         record.put("studentId", user.getUid());
         record.put("studentName", studentName);
         record.put("deviceId", deviceId);
+
+        // ✅ FIXED MISSING FIELDS
+        record.put("teacherId", teacherId);
+        record.put("classTime", timeSlot);   // sheet column
+        record.put("subject", subject);
+
         record.put("status", "PRESENT");
         record.put("date", date);
         record.put("time", time);
-        record.put("subject", sessionDoc.getString("subject"));
-        record.put("timeSlot", sessionDoc.getString("timeSlot"));
-        record.put("teacherName", sessionDoc.getString("teacherName"));
+        record.put("timeSlot", timeSlot);
+        record.put("teacherName", teacherName);
 
         // 🔥 SAVE TO FIRESTORE
         db.collection("attendance_records")
                 .add(record)
                 .addOnSuccessListener(v -> {
 
+                    // 🔥 SAVE TO GOOGLE SHEET
                     sendToGoogleSheet("attendance_records", record);
 
                     Intent intent = new Intent(this, AttendanceSuccessActivity.class);
                     intent.putExtra("studentName", studentName);
-                    intent.putExtra("subject", sessionDoc.getString("subject"));
-                    intent.putExtra("timeSlot", sessionDoc.getString("timeSlot"));
-                    intent.putExtra("teacherName", sessionDoc.getString("teacherName"));
+                    intent.putExtra("subject", subject);
+                    intent.putExtra("timeSlot", timeSlot);
+                    intent.putExtra("teacherName", teacherName);
                     startActivity(intent);
                 });
     }
+
 
     // ================= GOOGLE SHEET =================
     private void sendToGoogleSheet(String collection, Map<String, Object> data) {

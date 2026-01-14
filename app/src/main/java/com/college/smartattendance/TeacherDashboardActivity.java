@@ -143,22 +143,37 @@ public class TeacherDashboardActivity extends AppCompatActivity {
         currentSessionId = UUID.randomUUID().toString();
         long expiry = System.currentTimeMillis() + 60000;
 
+        // 🔥 DATE & TIME (NEW LOGIC)
+        String date = new SimpleDateFormat(
+                "yyyy-MM-dd", Locale.getDefault()).format(new Date());
+
+        String startTime = new SimpleDateFormat(
+                "HH:mm:ss", Locale.getDefault()).format(new Date());
+
+        String time = startTime; // for Google Sheet compatibility
+
         Map<String, Object> session = new HashMap<>();
         session.put("sessionId", currentSessionId);
         session.put("teacherId", user.getUid());
         session.put("teacherName", teacherName);
         session.put("subject", spinnerSubject.getSelectedItem().toString());
         session.put("timeSlot", spinnerTime.getSelectedItem().toString());
+
+        // ✅ NEW FIELDS (FIX BLANK COLUMNS)
+        session.put("date", date);
+        session.put("startTime", startTime);
+        session.put("time", time);
+
         session.put("expiresAt", expiry);
         session.put("status", "ACTIVE");
         session.put("totalPresent", 0);
 
-        // 🔥 FIRESTORE SAVE
+        // 🔥 FIRESTORE SAVE (UNCHANGED)
         db.collection("attendance_sessions")
                 .document(currentSessionId)
                 .set(session);
 
-        // 🔥 GOOGLE SHEET SAVE
+        // 🔥 GOOGLE SHEET SAVE (UNCHANGED)
         sendToGoogleSheet("attendance_sessions", session);
 
         try {
@@ -182,6 +197,7 @@ public class TeacherDashboardActivity extends AppCompatActivity {
         }.start();
     }
 
+
     // ================= END SESSION =================
     private void endSession() {
 
@@ -192,10 +208,24 @@ public class TeacherDashboardActivity extends AppCompatActivity {
 
                     int total = qs.size();
 
+                    // 🔥 DATE & END TIME (NEW)
+                    String date = new SimpleDateFormat(
+                            "yyyy-MM-dd", Locale.getDefault()).format(new Date());
+
+                    String endTime = new SimpleDateFormat(
+                            "HH:mm:ss", Locale.getDefault()).format(new Date());
+
                     Map<String, Object> update = new HashMap<>();
+                    update.put("sessionId", currentSessionId);
                     update.put("status", "COMPLETED");
                     update.put("totalPresent", total);
-                    update.put("sessionId", currentSessionId);
+
+                    // ✅ ADD MISSING FIELDS
+                    update.put("date", date);
+                    update.put("endTime", endTime);
+                    update.put("time", endTime);          // sheet compatibility
+                    update.put("expiresAt", System.currentTimeMillis());
+                    update.put("timeSlot", spinnerTime.getSelectedItem().toString());
 
                     // 🔥 UPDATE FIRESTORE
                     db.collection("attendance_sessions")
@@ -210,6 +240,7 @@ public class TeacherDashboardActivity extends AppCompatActivity {
                     imgQR.setImageDrawable(null);
                 });
     }
+
 
     // ================= GOOGLE SHEET =================
     private void sendToGoogleSheet(String collection, Map<String, Object> data) {
