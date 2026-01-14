@@ -23,7 +23,7 @@
             android:orientation="vertical"
             android:padding="20dp">
 
-            <!-- 👨‍🏫 LOGO (CENTER ONLY THIS) -->
+            <!-- 👨‍🏫 LOGO -->
             <androidx.cardview.widget.CardView
                 android:layout_width="120dp"
                 android:layout_height="120dp"
@@ -40,7 +40,7 @@
                     android:background="#FFFFFF" />
             </androidx.cardview.widget.CardView>
 
-            <!-- TITLE -->
+            <!-- GREETING -->
             <TextView
                 android:id="@+id/txtGreeting"
                 android:layout_width="wrap_content"
@@ -96,14 +96,14 @@
                 android:layout_height="52dp"
                 android:background="@android:drawable/btn_dropdown"
                 android:backgroundTint="#3F51B5"
-                android:layout_marginBottom="16dp" />
+                android:layout_marginBottom="20dp" />
 
             <!-- COUNTDOWN -->
             <TextView
                 android:id="@+id/txtCountdown"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="QR valid for 60 sec"
+                android:text="Session ends in 60 sec"
                 android:textColor="#D32F2F"
                 android:textStyle="bold"
                 android:visibility="gone"
@@ -120,16 +120,16 @@
                 android:textStyle="bold"
                 android:textColor="#FFFFFF"
                 android:backgroundTint="#3F51B5"
-                android:layout_marginBottom="16dp" />
+                android:layout_marginBottom="20dp" />
 
-            <!-- QR -->
+            <!-- QR CARD -->
             <androidx.cardview.widget.CardView
                 android:layout_width="260dp"
                 android:layout_height="260dp"
                 android:layout_gravity="center"
                 app:cardCornerRadius="20dp"
                 app:cardElevation="8dp"
-                android:layout_marginBottom="24dp">
+                android:layout_marginBottom="12dp">
 
                 <ImageView
                     android:id="@+id/imgQR"
@@ -139,7 +139,36 @@
                     android:background="#E8EBFF" />
             </androidx.cardview.widget.CardView>
 
-            <!-- ✅ VIEW ATTENDANCE (NOW PERFECT) -->
+            <!-- QR DETAILS -->
+            <TextView
+                android:id="@+id/txtQRSubject"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Subject:"
+                android:textStyle="bold"
+                android:textColor="#1A237E"
+                android:layout_gravity="center" />
+
+            <TextView
+                android:id="@+id/txtQRTime"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Time Slot:"
+                android:textStyle="bold"
+                android:textColor="#1A237E"
+                android:layout_gravity="center" />
+
+            <TextView
+                android:id="@+id/txtQRId"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="QR ID:"
+                android:textStyle="bold"
+                android:textColor="#37474F"
+                android:layout_gravity="center"
+                android:layout_marginBottom="24dp" />
+
+            <!-- VIEW ATTENDANCE -->
             <Button
                 android:id="@+id/btnViewAttendance"
                 android:layout_width="match_parent"

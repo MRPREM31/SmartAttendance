@@ -51,6 +51,9 @@ public class StudentDashboardActivity extends AppCompatActivity {
     private static final double CLASS_LNG = 85.004503;
     private static final float ALLOWED_RADIUS = 150;
 
+    // 🔥 Dynamic QR validity (10 sec)
+    private static final long QR_VALIDITY_MS = 10_000;
+
     private static final String GOOGLE_SCRIPT_URL =
             "https://script.google.com/macros/s/AKfycbxarlUMGk9HjBb3F4I3RllhYGVJblff7qvQgdi-g0Ey9xHA1bLkHh9jKAibItThop6G/exec";
 
@@ -158,12 +161,12 @@ public class StudentDashboardActivity extends AppCompatActivity {
         ScanOptions options = new ScanOptions();
         options.setPrompt("Scan Attendance QR");
         options.setBeepEnabled(true);
-        options.setOrientationLocked(false); // ✅ Vertical
+        options.setOrientationLocked(false);
         options.setCaptureActivity(CustomCaptureActivity.class);
         qrLauncher.launch(options);
     }
 
-    // ================= QR RESULT =================
+    // ================= QR RESULT (🔥 FIXED) =================
     private final ActivityResultLauncher<ScanOptions> qrLauncher =
             registerForActivityResult(new ScanContract(), result -> {
 
@@ -179,10 +182,22 @@ public class StudentDashboardActivity extends AppCompatActivity {
                 }
 
                 String sessionId = data[0];
-                long expiry = Long.parseLong(data[1]);
+                long qrTime;
 
-                if (System.currentTimeMillis() > expiry) {
-                    Toast.makeText(this, "QR expired", Toast.LENGTH_LONG).show();
+                try {
+                    qrTime = Long.parseLong(data[1]);
+                } catch (Exception e) {
+                    Toast.makeText(this, "Invalid QR data", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                long now = System.currentTimeMillis();
+
+                // ✅ DYNAMIC QR FRESHNESS CHECK (10 sec)
+                if (now - qrTime > QR_VALIDITY_MS) {
+                    Toast.makeText(this,
+                            "QR expired. Please scan the latest QR.",
+                            Toast.LENGTH_LONG).show();
                     return;
                 }
 
@@ -199,6 +214,19 @@ public class StudentDashboardActivity extends AppCompatActivity {
 
                     if (!sessionDoc.exists()) {
                         Toast.makeText(this, "Session not found", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+
+                    String status = sessionDoc.getString("status");
+                    Long expiresAt = sessionDoc.getLong("expiresAt");
+
+                    if (!"ACTIVE".equals(status)) {
+                        Toast.makeText(this, "Session closed", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+
+                    if (expiresAt != null && System.currentTimeMillis() > expiresAt) {
+                        Toast.makeText(this, "Session expired", Toast.LENGTH_SHORT).show();
                         return;
                     }
 
@@ -230,7 +258,7 @@ public class StudentDashboardActivity extends AppCompatActivity {
                 });
     }
 
-    // ================= FETCH NAME FROM USERS =================
+    // ================= FETCH NAME =================
     private void fetchStudentNameAndSave(
             String sessionId,
             String deviceId,
@@ -269,7 +297,6 @@ public class StudentDashboardActivity extends AppCompatActivity {
         String time = new SimpleDateFormat(
                 "HH:mm:ss", Locale.getDefault()).format(new Date());
 
-        // 🔥 FETCH FROM SESSION
         String teacherId = sessionDoc.getString("teacherId");
         String subject = sessionDoc.getString("subject");
         String timeSlot = sessionDoc.getString("timeSlot");
@@ -280,24 +307,19 @@ public class StudentDashboardActivity extends AppCompatActivity {
         record.put("studentId", user.getUid());
         record.put("studentName", studentName);
         record.put("deviceId", deviceId);
-
-        // ✅ FIXED MISSING FIELDS
         record.put("teacherId", teacherId);
-        record.put("classTime", timeSlot);   // sheet column
+        record.put("classTime", timeSlot);
         record.put("subject", subject);
-
         record.put("status", "PRESENT");
         record.put("date", date);
         record.put("time", time);
         record.put("timeSlot", timeSlot);
         record.put("teacherName", teacherName);
 
-        // 🔥 SAVE TO FIRESTORE
         db.collection("attendance_records")
                 .add(record)
                 .addOnSuccessListener(v -> {
 
-                    // 🔥 SAVE TO GOOGLE SHEET
                     sendToGoogleSheet("attendance_records", record);
 
                     Intent intent = new Intent(this, AttendanceSuccessActivity.class);
@@ -308,7 +330,6 @@ public class StudentDashboardActivity extends AppCompatActivity {
                     startActivity(intent);
                 });
     }
-
 
     // ================= GOOGLE SHEET =================
     private void sendToGoogleSheet(String collection, Map<String, Object> data) {
@@ -350,25 +371,37 @@ public class StudentDashboardActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
 
-        if (item.getItemId() == android.R.id.home ||
-                item.getItemId() == R.id.action_logout) {
+        int id = item.getItemId();
 
+        // 🔙 Toolbar back button
+        if (id == android.R.id.home) {
+            goToWelcome();
+            return true;
+        }
+
+        // 🚪 Logout button
+        if (id == R.id.action_logout) {
             FirebaseAuth.getInstance().signOut();
             goToWelcome();
             return true;
         }
+
         return super.onOptionsItemSelected(item);
     }
 
+    // ================= HANDLE PHONE BACK =================
     @SuppressWarnings("MissingSuperCall")
     @Override
     public void onBackPressed() {
         goToWelcome();
     }
 
+    // ================= NAVIGATION METHOD =================
     private void goToWelcome() {
-        Intent intent = new Intent(this, MainActivity.class);
+        Intent intent = new Intent(this, WelcomeActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
+        finish();
     }
+
 }

@@ -39,12 +39,16 @@ public class TeacherDashboardActivity extends AppCompatActivity {
     Spinner spinnerSubject, spinnerTime;
     Button btnGenerateQR, btnViewAttendance;
     ImageView imgQR;
+
     TextView txtCountdown, txtDateTime, txtGreeting;
+    TextView txtQRSubject, txtQRTime, txtQRId;
 
     FirebaseAuth auth;
     FirebaseFirestore db;
 
     String currentSessionId = "";
+    long sessionEndTime;
+    Handler qrHandler = new Handler();
 
     private static final String GOOGLE_SCRIPT_URL =
             "https://script.google.com/macros/s/AKfycbxarlUMGk9HjBb3F4I3RllhYGVJblff7qvQgdi-g0Ey9xHA1bLkHh9jKAibItThop6G/exec";
@@ -54,8 +58,14 @@ public class TeacherDashboardActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.teacher_dashboard);
 
+        // ================= TOOLBAR =================
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setTitle("Teacher Dashboard");
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true); // back button
+        }
 
         auth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
@@ -65,9 +75,14 @@ public class TeacherDashboardActivity extends AppCompatActivity {
         btnGenerateQR = findViewById(R.id.btnGenerateQR);
         btnViewAttendance = findViewById(R.id.btnViewAttendance);
         imgQR = findViewById(R.id.imgQR);
+
         txtCountdown = findViewById(R.id.txtCountdown);
         txtDateTime = findViewById(R.id.txtDateTime);
         txtGreeting = findViewById(R.id.txtGreeting);
+
+        txtQRSubject = findViewById(R.id.txtQRSubject);
+        txtQRTime = findViewById(R.id.txtQRTime);
+        txtQRId = findViewById(R.id.txtQRId);
 
         startDateTimeUpdater();
         loadTeacherGreeting();
@@ -103,16 +118,8 @@ public class TeacherDashboardActivity extends AppCompatActivity {
                 .addOnSuccessListener(doc -> {
                     String name = doc.getString("name");
                     if (name == null) name = "Teacher";
-                    txtGreeting.setText("Hi " + name + ", " + getGreetingByTime() + " 👋");
+                    txtGreeting.setText("Hi " + name + " 👋");
                 });
-    }
-
-    private String getGreetingByTime() {
-        int hour = Integer.parseInt(new SimpleDateFormat("HH", Locale.getDefault()).format(new Date()));
-        if (hour < 12) return "Good Morning";
-        if (hour < 17) return "Good Afternoon";
-        if (hour < 21) return "Good Evening";
-        return "Good Night";
     }
 
     // ================= DATE TIME =================
@@ -134,72 +141,87 @@ public class TeacherDashboardActivity extends AppCompatActivity {
                 .addOnSuccessListener(doc -> {
                     String teacherName = doc.getString("name");
                     if (teacherName == null) teacherName = "Teacher";
-                    generateQRSession(user, teacherName);
+                    createSession(user, teacherName);
                 });
     }
 
-    private void generateQRSession(FirebaseUser user, String teacherName) {
+    private void createSession(FirebaseUser user, String teacherName) {
 
         currentSessionId = UUID.randomUUID().toString();
-        long expiry = System.currentTimeMillis() + 60000;
+        sessionEndTime = System.currentTimeMillis() + 60000;
 
-        // 🔥 DATE & TIME (NEW LOGIC)
-        String date = new SimpleDateFormat(
-                "yyyy-MM-dd", Locale.getDefault()).format(new Date());
-
-        String startTime = new SimpleDateFormat(
-                "HH:mm:ss", Locale.getDefault()).format(new Date());
-
-        String time = startTime; // for Google Sheet compatibility
+        String date = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
+        String startTime = new SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(new Date());
 
         Map<String, Object> session = new HashMap<>();
-        session.put("sessionId", currentSessionId);
         session.put("teacherId", user.getUid());
         session.put("teacherName", teacherName);
         session.put("subject", spinnerSubject.getSelectedItem().toString());
-        session.put("timeSlot", spinnerTime.getSelectedItem().toString());
-
-        // ✅ NEW FIELDS (FIX BLANK COLUMNS)
-        session.put("date", date);
         session.put("startTime", startTime);
-        session.put("time", time);
-
-        session.put("expiresAt", expiry);
-        session.put("status", "ACTIVE");
+        session.put("sessionId", currentSessionId);
+        session.put("time", startTime);
         session.put("totalPresent", 0);
+        session.put("expiresAt", sessionEndTime);
+        session.put("status", "ACTIVE");
+        session.put("date", date);
+        session.put("timeSlot", spinnerTime.getSelectedItem().toString());
+        session.put("endTime", "");
 
-        // 🔥 FIRESTORE SAVE (UNCHANGED)
         db.collection("attendance_sessions")
                 .document(currentSessionId)
                 .set(session);
 
-        // 🔥 GOOGLE SHEET SAVE (UNCHANGED)
         sendToGoogleSheet("attendance_sessions", session);
 
-        try {
-            Bitmap bitmap = new BarcodeEncoder().encodeBitmap(
-                    currentSessionId + "|" + expiry,
-                    BarcodeFormat.QR_CODE, 400, 400);
-            imgQR.setImageBitmap(bitmap);
-        } catch (Exception ignored) {}
+        txtQRSubject.setText("Subject: " + spinnerSubject.getSelectedItem());
+        txtQRTime.setText("Time Slot: " + spinnerTime.getSelectedItem());
+        txtQRId.setText("QR ID: " + currentSessionId.substring(0, 8));
 
         txtCountdown.setVisibility(TextView.VISIBLE);
         btnGenerateQR.setEnabled(false);
 
+        startSessionCountdown();
+        startDynamicQR();
+    }
+
+    // ================= SESSION TIMER =================
+    private void startSessionCountdown() {
         new CountDownTimer(60000, 1000) {
             public void onTick(long ms) {
-                txtCountdown.setText("QR valid for " + (ms / 1000) + " sec");
+                txtCountdown.setText("Session ends in " + (ms / 1000) + " sec");
             }
-
             public void onFinish() {
                 endSession();
             }
         }.start();
     }
 
+    // ================= DYNAMIC QR =================
+    private void startDynamicQR() {
+        qrHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                if (System.currentTimeMillis() > sessionEndTime) return;
+
+                try {
+                    String payload = currentSessionId + "|" + System.currentTimeMillis();
+                    Bitmap bitmap = new BarcodeEncoder().encodeBitmap(
+                            payload, BarcodeFormat.QR_CODE, 400, 400);
+                    imgQR.setImageBitmap(bitmap);
+                } catch (Exception ignored) {}
+
+                qrHandler.postDelayed(this, 10000);
+            }
+        });
+    }
 
     // ================= END SESSION =================
     private void endSession() {
+
+        qrHandler.removeCallbacksAndMessages(null);
+
+        String endTime = new SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(new Date());
+        String date = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
 
         db.collection("attendance_records")
                 .whereEqualTo("sessionId", currentSessionId)
@@ -208,31 +230,19 @@ public class TeacherDashboardActivity extends AppCompatActivity {
 
                     int total = qs.size();
 
-                    // 🔥 DATE & END TIME (NEW)
-                    String date = new SimpleDateFormat(
-                            "yyyy-MM-dd", Locale.getDefault()).format(new Date());
-
-                    String endTime = new SimpleDateFormat(
-                            "HH:mm:ss", Locale.getDefault()).format(new Date());
-
                     Map<String, Object> update = new HashMap<>();
-                    update.put("sessionId", currentSessionId);
                     update.put("status", "COMPLETED");
                     update.put("totalPresent", total);
-
-                    // ✅ ADD MISSING FIELDS
-                    update.put("date", date);
                     update.put("endTime", endTime);
-                    update.put("time", endTime);          // sheet compatibility
-                    update.put("expiresAt", System.currentTimeMillis());
+                    update.put("time", endTime);
+                    update.put("date", date);
                     update.put("timeSlot", spinnerTime.getSelectedItem().toString());
+                    update.put("expiresAt", System.currentTimeMillis());
 
-                    // 🔥 UPDATE FIRESTORE
                     db.collection("attendance_sessions")
                             .document(currentSessionId)
                             .update(update);
 
-                    // 🔥 UPDATE GOOGLE SHEET
                     sendToGoogleSheet("attendance_sessions", update);
 
                     txtCountdown.setText("Session Completed");
@@ -240,7 +250,6 @@ public class TeacherDashboardActivity extends AppCompatActivity {
                     imgQR.setImageDrawable(null);
                 });
     }
-
 
     // ================= GOOGLE SHEET =================
     private void sendToGoogleSheet(String collection, Map<String, Object> data) {
@@ -258,8 +267,8 @@ public class TeacherDashboardActivity extends AppCompatActivity {
 
                 OutputStream os = conn.getOutputStream();
                 os.write(payload.toString().getBytes());
-                os.flush();
                 os.close();
+
                 conn.getResponseCode();
                 conn.disconnect();
             } catch (Exception ignored) {}
@@ -275,9 +284,38 @@ public class TeacherDashboardActivity extends AppCompatActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        FirebaseAuth.getInstance().signOut();
-        startActivity(new Intent(this, MainActivity.class));
-        finish();
-        return true;
+
+        int id = item.getItemId();
+
+        // 🔙 Toolbar back button
+        if (id == android.R.id.home) {
+            goToWelcome();
+            return true;
+        }
+
+        // 🚪 Logout button
+        if (id == R.id.action_logout) {
+            FirebaseAuth.getInstance().signOut();
+            goToWelcome();
+            return true;
+        }
+
+        return super.onOptionsItemSelected(item);
     }
+
+    // ================= HANDLE PHONE BACK =================
+    @SuppressWarnings("MissingSuperCall")
+    @Override
+    public void onBackPressed() {
+        goToWelcome();
+    }
+
+    // ================= NAVIGATION METHOD =================
+    private void goToWelcome() {
+        Intent intent = new Intent(this, WelcomeActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
+        finish();
+    }
+
 }
