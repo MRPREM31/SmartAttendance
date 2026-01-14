@@ -1,34 +1,35 @@
 package com.college.smartattendance;
 
 import android.app.DatePickerDialog;
+import android.Manifest;
+import android.content.pm.PackageManager;
+import android.graphics.Canvas;
+import android.graphics.Paint;
+import android.graphics.pdf.PdfDocument;
 import android.os.Bundle;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.Spinner;
-import android.widget.TextView;
-import android.widget.ArrayAdapter;
-
+import android.os.Environment;
+import android.widget.*;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.*;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
 
 public class AttendanceReportActivity extends AppCompatActivity {
 
     TextView txtWelcome, txtTotal;
     EditText edtDate;
     Spinner spinnerSubject, spinnerTimeSlot;
-    Button btnFetchAttendance;
+    Button btnFetchAttendance, btnDownloadPdf;
     RecyclerView recyclerAttendance;
 
     FirebaseFirestore db;
@@ -37,33 +38,30 @@ public class AttendanceReportActivity extends AppCompatActivity {
     List<AttendanceModel> attendanceList = new ArrayList<>();
     AttendanceSimpleAdapter adapter;
 
+    String teacherName = "";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_attendance_report);
 
-        // 🔷 Toolbar
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        if (getSupportActionBar() != null) {
-            getSupportActionBar().setTitle("Attendance Report");
-            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        }
+        getSupportActionBar().setTitle("Attendance Report");
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-        // Firebase
         db = FirebaseFirestore.getInstance();
         auth = FirebaseAuth.getInstance();
 
-        // Views
         txtWelcome = findViewById(R.id.txtWelcome);
         txtTotal = findViewById(R.id.txtTotal);
         edtDate = findViewById(R.id.edtDate);
         spinnerSubject = findViewById(R.id.spinnerSubject);
         spinnerTimeSlot = findViewById(R.id.spinnerTimeSlot);
         btnFetchAttendance = findViewById(R.id.btnFetchAttendance);
+        btnDownloadPdf = findViewById(R.id.btnDownloadPdf);
         recyclerAttendance = findViewById(R.id.recyclerAttendance);
 
-        // RecyclerView
         recyclerAttendance.setLayoutManager(new LinearLayoutManager(this));
         adapter = new AttendanceSimpleAdapter(attendanceList);
         recyclerAttendance.setAdapter(adapter);
@@ -71,53 +69,32 @@ public class AttendanceReportActivity extends AppCompatActivity {
         loadTeacherName();
         setupSpinners();
         setupDatePicker();
+        checkPermission();
 
         btnFetchAttendance.setOnClickListener(v -> fetchAttendance());
+        btnDownloadPdf.setOnClickListener(v -> generatePdf());
     }
 
-    // 👋 Load teacher name
     private void loadTeacherName() {
-        db.collection("users")
-                .document(auth.getUid())
-                .get()
-                .addOnSuccessListener(d ->
-                        txtWelcome.setText("Hi " + d.getString("name") + " 👋"));
+        db.collection("users").document(auth.getUid()).get()
+                .addOnSuccessListener(d -> {
+                    teacherName = d.getString("name");
+                    txtWelcome.setText("Hi " + teacherName + " 👋");
+                });
     }
 
-    // 📘 Subject & Time Slot spinners
     private void setupSpinners() {
-
-        String[] subjects = {
-                "GEE","CI","FLAT","OS","PYTHON","AI",
-                "RES","FLAT LAB","OS LAB","PYTHON LAB"
-        };
-
-        String[] timeSlots = {
-                "08:00-09:00",
-                "09:00-10:00",
-                "10:00-11:00",
-                "11:00-12:00",
-                "12:00-01:00",
-                "01:00-02:00",
-                "02:00-03:00",
-                "03:00-04:00",
-                "04:00-05:00"
-        };
-
-        spinnerSubject.setAdapter(new ArrayAdapter<>(
-                this,
+        spinnerSubject.setAdapter(new ArrayAdapter<>(this,
                 android.R.layout.simple_spinner_dropdown_item,
-                subjects
-        ));
+                new String[]{"GEE","CI","FLAT","OS","PYTHON","AI","RES","FLAT LAB","OS LAB","PYTHON LAB"}));
 
-        spinnerTimeSlot.setAdapter(new ArrayAdapter<>(
-                this,
+        spinnerTimeSlot.setAdapter(new ArrayAdapter<>(this,
                 android.R.layout.simple_spinner_dropdown_item,
-                timeSlots
-        ));
+                new String[]{"08:00-09:00","09:00-10:00","10:00-11:00",
+                             "11:00-12:00","12:00-01:00","01:00-02:00",
+                             "02:00-03:00","03:00-04:00","04:00-05:00"}));
     }
 
-    // 📅 Date picker
     private void setupDatePicker() {
         edtDate.setOnClickListener(v -> {
             Calendar c = Calendar.getInstance();
@@ -126,55 +103,125 @@ public class AttendanceReportActivity extends AppCompatActivity {
                         Calendar sel = Calendar.getInstance();
                         sel.set(y, m, d);
                         edtDate.setText(new SimpleDateFormat(
-                                "dd-MM-yyyy", Locale.getDefault()
-                        ).format(sel.getTime()));
+                                "dd-MM-yyyy", Locale.getDefault())
+                                .format(sel.getTime()));
                     },
                     c.get(Calendar.YEAR),
                     c.get(Calendar.MONTH),
-                    c.get(Calendar.DAY_OF_MONTH)
-            ).show();
+                    c.get(Calendar.DAY_OF_MONTH)).show();
         });
     }
 
-    // 🔄 Convert UI date → Firestore format
-    private String convertDateToFirestore(String uiDate) {
+    private String convertDate(String uiDate) {
         try {
-            SimpleDateFormat in =
-                    new SimpleDateFormat("dd-MM-yyyy", Locale.getDefault());
-            SimpleDateFormat out =
-                    new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
-            return out.format(in.parse(uiDate));
+            return new SimpleDateFormat("yyyy-MM-dd")
+                    .format(new SimpleDateFormat("dd-MM-yyyy").parse(uiDate));
         } catch (Exception e) {
             return uiDate;
         }
     }
 
-    // 🔍 Fetch attendance (WORKING QUERY)
     private void fetchAttendance() {
-
         attendanceList.clear();
         adapter.notifyDataSetChanged();
 
-        String firestoreDate = convertDateToFirestore(
-                edtDate.getText().toString()
-        );
-        String subject = spinnerSubject.getSelectedItem().toString();
-
         db.collection("attendance_records")
-                .whereEqualTo("date", firestoreDate)
-                .whereEqualTo("subject", subject)
+                .whereEqualTo("date", convertDate(edtDate.getText().toString()))
+                .whereEqualTo("subject", spinnerSubject.getSelectedItem().toString())
                 .get()
                 .addOnSuccessListener(qs -> {
-
-                    for (QueryDocumentSnapshot d : qs) {
-                        AttendanceModel model =
-                                d.toObject(AttendanceModel.class);
-                        attendanceList.add(model);
-                    }
+                    for (QueryDocumentSnapshot d : qs)
+                        attendanceList.add(d.toObject(AttendanceModel.class));
 
                     txtTotal.setText("Total Present: " + attendanceList.size());
                     adapter.notifyDataSetChanged();
                 });
+    }
+
+    // ================= PDF GENERATION =================
+    private void generatePdf() {
+
+        if (attendanceList.isEmpty()) {
+            Toast.makeText(this, "No attendance data", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        PdfDocument pdf = new PdfDocument();
+        Paint paint = new Paint();
+
+        PdfDocument.Page page = pdf.startPage(
+                new PdfDocument.PageInfo.Builder(595, 842, 1).create());
+        Canvas canvas = page.getCanvas();
+
+        int y = 40;
+
+        paint.setTextSize(16);
+        paint.setFakeBoldText(true);
+        canvas.drawText("Attendance Report", 200, y, paint);
+
+        paint.setTextSize(12);
+        paint.setFakeBoldText(false);
+        y += 30;
+
+        canvas.drawText("Teacher: " + teacherName, 40, y, paint); y += 20;
+        canvas.drawText("Subject: " + spinnerSubject.getSelectedItem(), 40, y, paint); y += 20;
+        canvas.drawText("Time Slot: " + spinnerTimeSlot.getSelectedItem(), 40, y, paint); y += 20;
+        canvas.drawText("Date: " + edtDate.getText().toString(), 40, y, paint); y += 30;
+
+        paint.setFakeBoldText(true);
+        canvas.drawText("Student Name", 40, y, paint);
+        canvas.drawText("Time", 200, y, paint);
+        canvas.drawText("Status", 300, y, paint);
+        canvas.drawText("Device ID", 380, y, paint);
+        paint.setFakeBoldText(false);
+
+        y += 15;
+
+        for (AttendanceModel a : attendanceList) {
+            canvas.drawText(a.getStudentName(), 40, y, paint);
+            canvas.drawText(a.getTime(), 200, y, paint);
+            canvas.drawText("Present", 300, y, paint);
+            canvas.drawText(a.getDeviceId(), 380, y, paint);
+            y += 15;
+        }
+
+        y += 30;
+        canvas.drawText("NIST Attendance System", 200, y, paint);
+        y += 15;
+        canvas.drawText("Downloaded on: " +
+                        new SimpleDateFormat("dd-MM-yyyy HH:mm").format(new Date()),
+                180, y, paint);
+
+        pdf.finishPage(page);
+
+        try {
+            File dir = new File(Environment.getExternalStoragePublicDirectory(
+                    Environment.DIRECTORY_DOWNLOADS), "AttendanceReports");
+            if (!dir.exists()) dir.mkdirs();
+
+            File file = new File(dir,
+                    "Attendance_" + System.currentTimeMillis() + ".pdf");
+
+            pdf.writeTo(new FileOutputStream(file));
+            Toast.makeText(this,
+                    "PDF saved in Downloads/AttendanceReports",
+                    Toast.LENGTH_LONG).show();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        pdf.close();
+    }
+
+    private void checkPermission() {
+        if (ContextCompat.checkSelfPermission(this,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED) {
+
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
+        }
     }
 
     @Override
