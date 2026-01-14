@@ -4,6 +4,30 @@ plugins {
 }
 
 android {
+
+    android {
+
+        signingConfigs {
+            release {
+                storeFile file("keystore/smartattendance.jks")
+                storePassword "Quantumcoders@2025"
+                keyAlias "smartattendance"
+                keyPassword "Quantumcoders@2025"
+            }
+        }
+
+        buildTypes {
+            release {
+                signingConfig signingConfigs.release
+                minifyEnabled false
+                shrinkResources false
+                proguardFiles getDefaultProguardFile(
+                        'proguard-android-optimize.txt'
+                ), 'proguard-rules.pro'
+            }
+        }
+    }
+
     namespace "com.college.smartattendance"
     compileSdk 34   // ✅ STABLE
 
