@@ -1,76 +1,111 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:gravity="center"
-    android:padding="24dp"
-    android:background="#FAFAFA">
+    android:background="#FAFAFA"
+    android:padding="24dp">
 
-    <!-- College Logo -->
-    <ImageView
-        android:layout_width="200dp"
-        android:layout_height="80dp"
-        android:src="@drawable/college_logo"
-        android:scaleType="fitCenter"
-        android:layout_marginBottom="16dp"/>
+    <!-- 🔷 CENTER CONTENT -->
+    <LinearLayout
+        android:id="@+id/centerContent"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/footer"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
 
-    <!-- Top Line Design -->
-    <View
-        android:layout_width="120dp"
-        android:layout_height="2dp"
-        android:background="@drawable/line_divider"
-        android:layout_marginBottom="24dp"/>
+        <!-- College Logo -->
+        <ImageView
+            android:layout_width="200dp"
+            android:layout_height="80dp"
+            android:src="@drawable/college_logo"
+            android:scaleType="fitCenter"
+            android:layout_marginBottom="16dp"/>
 
-    <!-- Welcome Text -->
-    <TextView
+        <!-- Top Line Design -->
+        <View
+            android:layout_width="120dp"
+            android:layout_height="2dp"
+            android:background="@drawable/line_divider"
+            android:layout_marginBottom="24dp"/>
+
+        <!-- Welcome Text -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Welcome to"
+            android:textSize="18sp"
+            android:textColor="#555555"
+            android:layout_marginBottom="8dp"/>
+
+        <!-- App Title -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="NIST University\nAttendance System"
+            android:textSize="26sp"
+            android:textStyle="bold"
+            android:textColor="#1A237E"
+            android:textAlignment="center"
+            android:layout_marginBottom="24dp"/>
+
+        <!-- Bottom Line Design -->
+        <View
+            android:layout_width="180dp"
+            android:layout_height="2dp"
+            android:background="@drawable/line_divider"
+            android:layout_marginBottom="40dp"/>
+
+        <!-- Next Button -->
+        <Button
+            android:id="@+id/btnNext"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:text="Next"
+            android:textAllCaps="false"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="#FFFFFF"
+            android:backgroundTint="#3F51B5"
+            android:elevation="6dp"/>
+
+    </LinearLayout>
+
+    <!-- 🔻 FIXED FOOTER -->
+    <LinearLayout
+        android:id="@+id/footer"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Welcome to"
-        android:textSize="18sp"
-        android:textColor="#555555"
-        android:layout_marginBottom="8dp"/>
+        android:orientation="vertical"
+        android:gravity="center"
+        android:layout_marginBottom="12dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
 
-    <!-- App Title -->
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="NIST University\nAttendance System"
-        android:textSize="26sp"
-        android:textStyle="bold"
-        android:textColor="#1A237E"
-        android:textAlignment="center"
-        android:layout_marginBottom="24dp"/>
+        <TextClock
+            android:id="@+id/txtDateTime"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:format12Hour="dd MMM yyyy  •  hh:mm a"
+            android:format24Hour="dd MMM yyyy  •  HH:mm"
+            android:textSize="11sp"
+            android:textColor="#1A237E"
+            android:alpha="0.7"
+            android:layout_marginBottom="4dp"/>
 
-    <!-- Bottom Line Design -->
-    <View
-        android:layout_width="180dp"
-        android:layout_height="2dp"
-        android:background="@drawable/line_divider"
-        android:layout_marginBottom="40dp"/>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="App made by QuantumCoders Tech Lab"
+            android:textSize="11sp"
+            android:textColor="#37474F"/>
 
-    <!-- Next Button -->
-    <Button
-        android:id="@+id/btnNext"
-        android:layout_width="match_parent"
-        android:layout_height="52dp"
-        android:text="Next"
-        android:textAllCaps="false"
-        android:textSize="16sp"
-        android:textStyle="bold"
-        android:textColor="#FFFFFF"
-        android:backgroundTint="#3F51B5"
-        android:elevation="6dp"/>
+    </LinearLayout>
 
-    <TextClock
-        android:id="@+id/txtDateTime"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:format12Hour="dd MMM yyyy  •  hh:mm a"
-        android:format24Hour="dd MMM yyyy  •  HH:mm"
-        android:textSize="11sp"
-        android:textColor="#1A237E"
-        android:alpha="0.7"
-        android:layout_marginTop="32dp"
-        android:layout_gravity="center"/>
-</LinearLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>
