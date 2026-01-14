@@ -47,6 +47,13 @@ public class MainActivity extends AppCompatActivity {
         btnLogin = findViewById(R.id.btnLogin);
         btnSignup = findViewById(R.id.btnSignup);
 
+        TextView txtUserGuide = findViewById(R.id.txtUserGuide);
+
+        txtUserGuide.setOnClickListener(v ->
+                startActivity(new Intent(MainActivity.this, HelpActivity.class))
+        );
+
+
         if (auth.getCurrentUser() != null) {
             redirectUser(auth.getCurrentUser().getUid());
         }

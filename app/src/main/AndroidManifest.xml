@@ -38,6 +38,10 @@
             android:name=".AttendanceReportActivity"
             android:exported="false" />
 
+        <activity
+            android:name=".HelpActivity"
+            android:exported="false" />
+
         <!-- 🚀 LAUNCHER -->
         <activity
             android:name=".WelcomeActivity"

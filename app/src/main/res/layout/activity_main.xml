@@ -116,4 +116,17 @@
         android:layout_height="52dp"
         android:layout_marginTop="10dp"/>
 
+    <!-- 📘 USER GUIDE -->
+    <TextView
+        android:id="@+id/txtUserGuide"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="📘 How to use this app?"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        android:textColor="#3F51B5"
+        android:layout_marginTop="20dp"
+        android:clickable="true"
+        android:focusable="true"/>
+
 </LinearLayout>
