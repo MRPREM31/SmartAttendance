@@ -67,6 +67,17 @@
             android:backgroundTint="#3F51B5"
             android:layout_marginBottom="32dp"/>
 
+        <Button
+            android:id="@+id/btnViewReport"
+            android:layout_width="match_parent"
+            android:layout_height="54dp"
+            android:text="View Attendance Report"
+            android:textAllCaps="false"
+            android:textColor="@android:color/white"
+            android:textStyle="bold"
+            android:backgroundTint="#009688"
+            android:layout_marginBottom="24dp"/>
+
         <!-- 🔽 PUSH TIME TO BOTTOM -->
         <Space
             android:layout_width="match_parent"

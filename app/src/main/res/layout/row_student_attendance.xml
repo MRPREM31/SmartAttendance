@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="14dp"
+    android:layout_marginBottom="10dp"
+    android:background="#F9FAFB"
+    android:elevation="2dp">
+
+    <!-- 📘 SUBJECT -->
+    <TextView
+        android:id="@+id/txtSubject"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Subject"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:textColor="#1A237E"
+        android:layout_marginBottom="4dp" />
+
+    <!-- 👨‍🏫 TEACHER -->
+    <TextView
+        android:id="@+id/txtTeacher"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Teacher"
+        android:textColor="#374151"
+        android:layout_marginBottom="2dp" />
+
+    <!-- ⏰ TIME SLOT -->
+    <TextView
+        android:id="@+id/txtTimeSlot"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Time Slot"
+        android:textColor="#374151"
+        android:layout_marginBottom="2dp" />
+
+    <!-- ✅ STATUS -->
+    <TextView
+        android:id="@+id/txtStatus"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="PRESENT"
+        android:textStyle="bold"
+        android:textColor="#16A34A" />
+
+</LinearLayout>

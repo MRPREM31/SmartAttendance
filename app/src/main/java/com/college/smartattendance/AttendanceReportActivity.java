@@ -1,5 +1,10 @@
 package com.college.smartattendance;
 
+import android.content.ContentValues;
+import android.graphics.Canvas;
+import android.net.Uri;
+import android.provider.MediaStore;
+import android.os.Build;
 import android.app.DatePickerDialog;
 import android.Manifest;
 import android.content.pm.PackageManager;
@@ -19,6 +24,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.*;
 
+import java.io.OutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.text.SimpleDateFormat;
@@ -175,44 +181,87 @@ public class AttendanceReportActivity extends AppCompatActivity {
         canvas.drawText("Device ID", 380, y, paint);
         paint.setFakeBoldText(false);
 
-        y += 15;
+        y += 18;
 
         for (AttendanceModel a : attendanceList) {
             canvas.drawText(a.getStudentName(), 40, y, paint);
             canvas.drawText(a.getTime(), 200, y, paint);
-            canvas.drawText("Present", 300, y, paint);
+            canvas.drawText("PRESENT", 300, y, paint);
             canvas.drawText(a.getDeviceId(), 380, y, paint);
-            y += 15;
+            y += 16;
         }
 
         y += 30;
         canvas.drawText("NIST Attendance System", 200, y, paint);
         y += 15;
         canvas.drawText("Downloaded on: " +
-                        new SimpleDateFormat("dd-MM-yyyy HH:mm").format(new Date()),
-                180, y, paint);
+                        new SimpleDateFormat("dd-MM-yyyy HH:mm", Locale.getDefault())
+                                .format(new Date()),
+                160, y, paint);
 
         pdf.finishPage(page);
 
+        // ================= FILE NAME =================
+        String cleanTeacher = teacherName.replaceAll("\\s+", "_");
+        String cleanSub = spinnerSubject.getSelectedItem().toString().replaceAll("\\s+", "_");
+        String cleanTime = spinnerTimeSlot.getSelectedItem().toString().replace(":", "-");
+
+        String fileName = cleanTeacher + "_" + cleanSub + "_" + cleanTime + ".pdf";
+
         try {
-            File dir = new File(Environment.getExternalStoragePublicDirectory(
-                    Environment.DIRECTORY_DOWNLOADS), "AttendanceReports");
-            if (!dir.exists()) dir.mkdirs();
 
-            File file = new File(dir,
-                    "Attendance_" + System.currentTimeMillis() + ".pdf");
+            // ===== ANDROID 10+ =====
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
 
-            pdf.writeTo(new FileOutputStream(file));
-            Toast.makeText(this,
+                ContentValues values = new ContentValues();
+                values.put(MediaStore.MediaColumns.DISPLAY_NAME, fileName);
+                values.put(MediaStore.MediaColumns.MIME_TYPE, "application/pdf");
+                values.put(MediaStore.MediaColumns.RELATIVE_PATH,
+                        Environment.DIRECTORY_DOWNLOADS + "/AttendanceReports");
+
+                Uri uri = getContentResolver().insert(
+                        MediaStore.Files.getContentUri("external"),
+                        values
+                );
+
+                if (uri != null) {
+                    OutputStream os = getContentResolver().openOutputStream(uri);
+                    pdf.writeTo(os);
+                    os.close();
+                }
+
+            }
+            // ===== ANDROID 9 & BELOW =====
+            else {
+
+                File dir = new File(
+                        Environment.getExternalStoragePublicDirectory(
+                                Environment.DIRECTORY_DOWNLOADS),
+                        "AttendanceReports"
+                );
+
+                if (!dir.exists()) dir.mkdirs();
+
+                File file = new File(dir, fileName);
+                FileOutputStream fos = new FileOutputStream(file);
+                pdf.writeTo(fos);
+                fos.close();
+            }
+
+            Toast.makeText(
+                    this,
                     "PDF saved in Downloads/AttendanceReports",
-                    Toast.LENGTH_LONG).show();
+                    Toast.LENGTH_LONG
+            ).show();
 
         } catch (Exception e) {
             e.printStackTrace();
+            Toast.makeText(this, "PDF save failed", Toast.LENGTH_SHORT).show();
         }
 
         pdf.close();
     }
+
 
     private void checkPermission() {
         if (ContextCompat.checkSelfPermission(this,

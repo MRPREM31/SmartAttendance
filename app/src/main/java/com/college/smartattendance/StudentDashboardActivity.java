@@ -82,6 +82,18 @@ public class StudentDashboardActivity extends AppCompatActivity {
 
         loadStudentName();
         startLiveDateTime();
+
+        Button btnViewReport;
+
+        btnViewReport = findViewById(R.id.btnViewReport);
+
+        btnViewReport.setOnClickListener(v -> {
+            startActivity(new Intent(
+                    StudentDashboardActivity.this,
+                    StudentAttendanceReportActivity.class
+            ));
+        });
+
     }
 
     // ================= LOAD STUDENT NAME =================
