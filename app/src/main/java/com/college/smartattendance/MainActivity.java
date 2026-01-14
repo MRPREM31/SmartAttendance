@@ -190,19 +190,30 @@ public class MainActivity extends AppCompatActivity {
     private void showForgotPasswordDialog() {
 
         EditText edtResetEmail = new EditText(this);
-        edtResetEmail.setHint("Enter your registered email");
+        edtResetEmail.setHint("Enter your @nist.edu email");
         edtResetEmail.setInputType(android.text.InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS);
 
         new androidx.appcompat.app.AlertDialog.Builder(this)
                 .setTitle("Reset Password")
-                .setMessage("We will send a reset link to your email")
+                .setMessage("A reset link will be sent to your NIST email")
                 .setView(edtResetEmail)
                 .setPositiveButton("Send Link", (dialog, which) -> {
 
                     String email = edtResetEmail.getText().toString().trim();
 
+                    // 🔒 EMPTY CHECK
                     if (email.isEmpty()) {
                         Toast.makeText(this, "Email required", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+
+                    // 🔐 DOMAIN RESTRICTION
+                    if (!email.endsWith("@nist.edu")) {
+                        Toast.makeText(
+                                this,
+                                "Only @nist.edu email is allowed",
+                                Toast.LENGTH_LONG
+                        ).show();
                         return;
                     }
 
@@ -211,7 +222,7 @@ public class MainActivity extends AppCompatActivity {
                             .addOnSuccessListener(v ->
                                     Toast.makeText(
                                             this,
-                                            "Reset link sent to your email 📧",
+                                            "Reset link sent to " + email + " 📧",
                                             Toast.LENGTH_LONG
                                     ).show()
                             )
@@ -226,7 +237,6 @@ public class MainActivity extends AppCompatActivity {
                 .setNegativeButton("Cancel", null)
                 .show();
     }
-
 
     // ================= GOOGLE SHEET =================
     private void sendToGoogleSheet(String collection, Map<String, Object> data) {
