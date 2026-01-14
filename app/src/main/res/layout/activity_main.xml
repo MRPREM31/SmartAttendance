@@ -3,130 +3,147 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:gravity="center"
-    android:padding="24dp"
     android:background="#FAFAFA">
 
-    <!-- 🏫 NIST Logo -->
-    <ImageView
-        android:layout_width="140dp"
-        android:layout_height="80dp"
-        android:src="@drawable/college_logo"
-        android:scaleType="fitCenter"
-        android:layout_marginBottom="20dp"/>
+    <!-- 🔷 TOOLBAR -->
+    <include
+        android:id="@+id/toolbar"
+        layout="@layout/toolbar_main" />
 
-    <!-- App Name -->
-    <TextView
-        android:text="Smart Attendance"
-        android:textSize="26sp"
-        android:textStyle="bold"
-        android:textColor="#1A237E"
-        android:layout_marginBottom="6dp"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"/>
-
-    <!-- Subtitle -->
-    <TextView
-        android:text="NIST University Attendance System"
-        android:textSize="14sp"
-        android:textColor="#666666"
-        android:layout_marginBottom="24dp"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"/>
-
-    <!-- 👤 NAME -->
-    <EditText
-        android:id="@+id/edtName"
-        android:hint="Your Name"
-        android:inputType="textPersonName"
+    <!-- 🔷 CONTENT -->
+    <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="12dp"
-        android:backgroundTint="#3F51B5"
-        android:textColor="#1A237E"
-        android:textColorHint="#3F51B5"/>
+        android:layout_height="match_parent">
 
-    <!-- 📧 Email -->
-    <EditText
-        android:id="@+id/edtEmail"
-        android:hint="Email (@nist.edu)"
-        android:inputType="textEmailAddress"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="12dp"
-        android:backgroundTint="#3F51B5"
-        android:textColor="#1A237E"
-        android:textColorHint="#3F51B5"/>
-
-    <!-- 🔒 Password -->
-    <EditText
-        android:id="@+id/edtPassword"
-        android:hint="Password"
-        android:inputType="textPassword"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="20dp"
-        android:backgroundTint="#3F51B5"
-        android:textColor="#1A237E"
-        android:textColorHint="#3F51B5"/>
-
-    <!-- 🎭 Role -->
-    <RadioGroup
-        android:orientation="horizontal"
-        android:layout_marginBottom="20dp"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content">
-
-        <RadioButton
-            android:id="@+id/rbStudent"
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Student"
-            android:textColor="#1A237E"
-            android:checked="true"/>
+            android:orientation="vertical"
+            android:gravity="center"
+            android:padding="24dp">
 
-        <RadioButton
-            android:id="@+id/rbTeacher"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Teacher"
-            android:textColor="#1A237E"
-            android:layout_marginStart="24dp"/>
-    </RadioGroup>
+            <!-- 🏫 NIST Logo -->
+            <ImageView
+                android:layout_width="140dp"
+                android:layout_height="80dp"
+                android:src="@drawable/college_logo"
+                android:scaleType="fitCenter"
+                android:layout_marginBottom="20dp"/>
 
+            <!-- App Name -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Smart Attendance"
+                android:textSize="26sp"
+                android:textStyle="bold"
+                android:textColor="#1A237E"
+                android:layout_marginBottom="6dp"/>
 
-    <!-- Login -->
-    <Button
-        android:id="@+id/btnLogin"
-        android:text="Sign In"
-        android:textAllCaps="false"
-        android:textColor="@android:color/white"
-        android:backgroundTint="#3F51B5"
-        android:layout_width="match_parent"
-        android:layout_height="52dp"/>
+            <!-- Subtitle -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="NIST University Attendance System"
+                android:textSize="14sp"
+                android:textColor="#666666"
+                android:layout_marginBottom="24dp"/>
 
-    <!-- Signup -->
-    <Button
-        android:id="@+id/btnSignup"
-        android:text="Sign Up"
-        android:textAllCaps="false"
-        android:textColor="#3F51B5"
-        android:backgroundTint="#E8EAF6"
-        android:layout_width="match_parent"
-        android:layout_height="52dp"
-        android:layout_marginTop="10dp"/>
+            <!-- 👤 NAME -->
+            <EditText
+                android:id="@+id/edtName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Your Name"
+                android:inputType="textPersonName"
+                android:layout_marginBottom="12dp"
+                android:backgroundTint="#3F51B5"
+                android:textColor="#1A237E"
+                android:textColorHint="#3F51B5"/>
 
-    <!-- 📘 USER GUIDE -->
-    <TextView
-        android:id="@+id/txtUserGuide"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="📘 How to use this app?"
-        android:textSize="14sp"
-        android:textStyle="bold"
-        android:textColor="#3F51B5"
-        android:layout_marginTop="20dp"
-        android:clickable="true"
-        android:focusable="true"/>
+            <!-- 📧 Email -->
+            <EditText
+                android:id="@+id/edtEmail"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Email (@nist.edu)"
+                android:inputType="textEmailAddress"
+                android:layout_marginBottom="12dp"
+                android:backgroundTint="#3F51B5"
+                android:textColor="#1A237E"
+                android:textColorHint="#3F51B5"/>
+
+            <!-- 🔒 Password -->
+            <EditText
+                android:id="@+id/edtPassword"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Password"
+                android:inputType="textPassword"
+                android:layout_marginBottom="20dp"
+                android:backgroundTint="#3F51B5"
+                android:textColor="#1A237E"
+                android:textColorHint="#3F51B5"/>
+
+            <!-- 🎭 Role -->
+            <RadioGroup
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="20dp">
+
+                <RadioButton
+                    android:id="@+id/rbStudent"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Student"
+                    android:textColor="#1A237E"
+                    android:checked="true"/>
+
+                <RadioButton
+                    android:id="@+id/rbTeacher"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Teacher"
+                    android:textColor="#1A237E"
+                    android:layout_marginStart="24dp"/>
+            </RadioGroup>
+
+            <!-- Login -->
+            <Button
+                android:id="@+id/btnLogin"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:text="Sign In"
+                android:textAllCaps="false"
+                android:textColor="@android:color/white"
+                android:backgroundTint="#3F51B5"/>
+
+            <!-- Signup -->
+            <Button
+                android:id="@+id/btnSignup"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:text="Sign Up"
+                android:textAllCaps="false"
+                android:textColor="#3F51B5"
+                android:backgroundTint="#E8EAF6"
+                android:layout_marginTop="10dp"/>
+
+            <!-- 📘 USER GUIDE -->
+            <TextView
+                android:id="@+id/txtUserGuide"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="📘 How to use this app?"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:textColor="#3F51B5"
+                android:layout_marginTop="20dp"
+                android:clickable="true"
+                android:focusable="true"/>
+
+        </LinearLayout>
+    </ScrollView>
 
 </LinearLayout>

@@ -3,9 +3,12 @@ package com.college.smartattendance;
 import android.content.Intent;
 import android.os.Bundle;
 import android.provider.Settings;
+import android.text.method.PasswordTransformationMethod;
+import android.text.method.HideReturnsTransformationMethod;
 import android.widget.*;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -27,6 +30,8 @@ public class MainActivity extends AppCompatActivity {
     FirebaseAuth auth;
     FirebaseFirestore db;
 
+    boolean isPasswordVisible = false; // 👁️ toggle state
+
     // 🔗 GOOGLE APPS SCRIPT WEB APP URL
     private static final String GOOGLE_SCRIPT_URL =
             "https://script.google.com/macros/s/AKfycbxarlUMGk9HjBb3F4I3RllhYGVJblff7qvQgdi-g0Ey9xHA1bLkHh9jKAibItThop6G/exec";
@@ -35,6 +40,15 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        // ================= TOOLBAR =================
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setTitle("User Credentials");
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true); // 🔙 back
+        }
 
         auth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
@@ -53,6 +67,19 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(new Intent(MainActivity.this, HelpActivity.class))
         );
 
+        // ================= 👁️ SHOW / HIDE PASSWORD =================
+        edtPassword.setOnLongClickListener(v -> {
+            if (isPasswordVisible) {
+                edtPassword.setTransformationMethod(PasswordTransformationMethod.getInstance());
+                Toast.makeText(this, "Password Hidden 🔒", Toast.LENGTH_SHORT).show();
+            } else {
+                edtPassword.setTransformationMethod(HideReturnsTransformationMethod.getInstance());
+                Toast.makeText(this, "Password Visible 👁️", Toast.LENGTH_SHORT).show();
+            }
+            isPasswordVisible = !isPasswordVisible;
+            edtPassword.setSelection(edtPassword.getText().length());
+            return true;
+        });
 
         if (auth.getCurrentUser() != null) {
             redirectUser(auth.getCurrentUser().getUid());
@@ -97,15 +124,11 @@ public class MainActivity extends AppCompatActivity {
                     user.put("deviceId", deviceId);
                     user.put("createdAt", System.currentTimeMillis());
 
-                    // 🔥 FIREBASE
                     db.collection("users")
                             .document(uid)
                             .set(user)
                             .addOnSuccessListener(v -> {
-
-                                // 📊 GOOGLE SHEET
                                 sendToGoogleSheet("users", user);
-
                                 openDashboard(role);
                             });
                 })
@@ -188,4 +211,27 @@ public class MainActivity extends AppCompatActivity {
             }
         }).start();
     }
+
+    // ================= TOOLBAR BACK =================
+    @Override
+    public boolean onSupportNavigateUp() {
+        goToWelcome();
+        return true;
+    }
+
+    // ================= PHONE BACK =================
+    @Override
+    public void onBackPressed() {
+        goToWelcome();
+        super.onBackPressed(); // ✅ satisfies Android warning
+    }
+
+    // ================= NAVIGATION METHOD =================
+    private void goToWelcome() {
+        Intent intent = new Intent(MainActivity.this, WelcomeActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+        startActivity(intent);
+        finish();
+    }
+
 }
