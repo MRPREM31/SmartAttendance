@@ -1,5 +1,8 @@
 package com.college.smartattendance;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
 import android.app.DatePickerDialog;
 import android.content.Intent;
 import android.graphics.Paint;
@@ -171,33 +174,132 @@ public class StudentAttendanceReportActivity extends AppCompatActivity {
             PdfDocument.Page page = pdf.startPage(
                     new PdfDocument.PageInfo.Builder(595, 842, 1).create());
 
-            Paint p = new Paint();
-            p.setTextSize(12);
+            Canvas canvas = page.getCanvas();
+            Paint paint = new Paint();
 
-            page.getCanvas().drawText("STUDENT ATTENDANCE REPORT", 160, 50, p);
-            page.getCanvas().drawText("Name: " + studentName, 50, 90, p);
-            page.getCanvas().drawText("Date: " + edtDate.getText().toString(), 50, 110, p);
+            int y = 40;
 
-            int y = 160;
+            // ================= LOGO =================
+            Bitmap logo = BitmapFactory.decodeResource(getResources(), R.drawable.college_logo);
+            Bitmap scaledLogo = Bitmap.createScaledBitmap(logo, 60, 60, false);
+            canvas.drawBitmap(scaledLogo, (595 - 60) / 2f, y, paint);
+
+            y += 80;
+
+            // ================= TITLE =================
+            paint.setTextSize(16);
+            paint.setFakeBoldText(true);
+            paint.setTextAlign(Paint.Align.CENTER);
+            canvas.drawText("STUDENT ATTENDANCE REPORT", 595 / 2f, y, paint);
+
+            paint.setTextAlign(Paint.Align.LEFT);
+            paint.setFakeBoldText(false);
+            paint.setTextSize(12);
+
+            y += 30;
+
+            // ================= INFO =================
+            canvas.drawText("Name: " + studentName, 40, y, paint);
+            canvas.drawText("Date: " + edtDate.getText().toString(), 350, y, paint);
+
+            y += 30;
+
+            // ================= TABLE =================
+            paint.setTextSize(10);
+            paint.setStyle(Paint.Style.STROKE);
+            paint.setTextAlign(Paint.Align.LEFT);
+
+            int tableStartX = 30;
+            int tableEndX = 565;
+            int rowHeight = 26;
+            int cellPadding = 5;
+
+// Column widths (total ≈ page width)
+            int colSubject = 90;
+            int colTimeSlot = 80;
+            int colStatus = 70;
+            int colTeacher = 120;
+            int colTime = 80;
+
+// Column X positions
+            int xSubject = tableStartX;
+            int xTimeSlot = xSubject + colSubject;
+            int xStatus = xTimeSlot + colTimeSlot;
+            int xTeacher = xStatus + colStatus;
+            int xTime = xTeacher + colTeacher;
+
+// ===== HEADER ROW =====
+            paint.setFakeBoldText(true);
+
+// Outer border
+            canvas.drawRect(tableStartX, y, tableEndX, y + rowHeight, paint);
+
+// Vertical lines
+            canvas.drawLine(xTimeSlot, y, xTimeSlot, y + rowHeight, paint);
+            canvas.drawLine(xStatus, y, xStatus, y + rowHeight, paint);
+            canvas.drawLine(xTeacher, y, xTeacher, y + rowHeight, paint);
+            canvas.drawLine(xTime, y, xTime, y + rowHeight, paint);
+
+// Header text
+            canvas.drawText("Subject", xSubject + cellPadding, y + 18, paint);
+            canvas.drawText("Time Slot", xTimeSlot + cellPadding, y + 18, paint);
+            canvas.drawText("Status", xStatus + cellPadding, y + 18, paint);
+            canvas.drawText("Teacher", xTeacher + cellPadding, y + 18, paint);
+            canvas.drawText("Time", xTime + cellPadding, y + 18, paint);
+
+            y += rowHeight;
+            paint.setFakeBoldText(false);
+
+// ===== DATA ROWS =====
             for (StudentAttendanceModel m : list) {
-                page.getCanvas().drawText(
-                        m.subject + " | " + m.timeSlot + " | " +
-                                m.status + " | " + m.teacherName,
-                        50, y, p
-                );
-                y += 25;
+
+                // Row border
+                canvas.drawRect(tableStartX, y, tableEndX, y + rowHeight, paint);
+
+                // Vertical lines
+                canvas.drawLine(xTimeSlot, y, xTimeSlot, y + rowHeight, paint);
+                canvas.drawLine(xStatus, y, xStatus, y + rowHeight, paint);
+                canvas.drawLine(xTeacher, y, xTeacher, y + rowHeight, paint);
+                canvas.drawLine(xTime, y, xTime, y + rowHeight, paint);
+
+                // Trim long text safely
+                String subject = m.subject.length() > 12 ? m.subject.substring(0, 12) : m.subject;
+                String teacher = m.teacherName.length() > 14 ? m.teacherName.substring(0, 14) : m.teacherName;
+
+                // Cell text
+                canvas.drawText(subject, xSubject + cellPadding, y + 18, paint);
+                canvas.drawText(m.timeSlot, xTimeSlot + cellPadding, y + 18, paint);
+                canvas.drawText(m.status, xStatus + cellPadding, y + 18, paint);
+                canvas.drawText(teacher, xTeacher + cellPadding, y + 18, paint);
+                canvas.drawText(m.time, xTime + cellPadding, y + 18, paint);
+
+                y += rowHeight;
             }
 
-            String downloadTime = new SimpleDateFormat(
+
+            // ================= FOOTER =================
+            paint.setTextSize(10);
+            paint.setTextAlign(Paint.Align.CENTER);
+
+            String footerTime = new SimpleDateFormat(
                     "dd-MM-yyyy HH:mm", Locale.getDefault()).format(new Date());
 
-            page.getCanvas().drawText("NIST Attendance System", 50, 800, p);
-            page.getCanvas().drawText("Downloaded on " + downloadTime, 300, 800, p);
+            canvas.drawText(
+                    "NIST Attendance System | Downloaded on " + footerTime,
+                    595 / 2f,
+                    820,
+                    paint
+            );
 
             pdf.finishPage(page);
 
-            String fileName = "Student_Attendance_Report_" + System.currentTimeMillis() + ".pdf";
+            // ================= FILE NAME =================
+            String cleanName = studentName.replaceAll("\\s+", "_");
+            String cleanDate = edtDate.getText().toString();
 
+            String fileName = cleanName + "_" + cleanDate + "_report.pdf";
+
+            // ================= SAVE =================
             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
 
                 android.content.ContentValues values = new android.content.ContentValues();
@@ -238,6 +340,7 @@ public class StudentAttendanceReportActivity extends AppCompatActivity {
             Toast.makeText(this, "PDF Error", Toast.LENGTH_SHORT).show();
         }
     }
+
 
     // ================= MENU =================
     @Override

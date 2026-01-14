@@ -1,5 +1,13 @@
 package com.college.smartattendance;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.content.ContentValues;
+import android.net.Uri;
+import android.provider.MediaStore;
+import android.os.Environment;
+import android.os.Build;
 import android.content.ContentValues;
 import android.graphics.Canvas;
 import android.net.Uri;
@@ -24,6 +32,14 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.*;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.content.ContentValues;
+import android.net.Uri;
+import android.provider.MediaStore;
+import android.os.Environment;
+import android.os.Build;
 import java.io.OutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -153,65 +169,133 @@ public class AttendanceReportActivity extends AppCompatActivity {
         }
 
         PdfDocument pdf = new PdfDocument();
-        Paint paint = new Paint();
+        Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
 
+        int pageWidth = 595;
+        int pageHeight = 842;
+        int margin = 30;
+        int rowHeight = 26;
+
+        int pageNumber = 1;
         PdfDocument.Page page = pdf.startPage(
-                new PdfDocument.PageInfo.Builder(595, 842, 1).create());
+                new PdfDocument.PageInfo.Builder(pageWidth, pageHeight, pageNumber).create()
+        );
         Canvas canvas = page.getCanvas();
 
         int y = 40;
 
+        // ================= LOGO (ONLY FIRST PAGE) =================
+        Bitmap logo = BitmapFactory.decodeResource(getResources(), R.drawable.college_logo);
+        Bitmap scaledLogo = Bitmap.createScaledBitmap(logo, 60, 60, false);
+        canvas.drawBitmap(scaledLogo, (pageWidth - 60) / 2f, y, paint);
+        y += 80;
+
+        // ================= TITLE =================
         paint.setTextSize(16);
         paint.setFakeBoldText(true);
-        canvas.drawText("Attendance Report", 200, y, paint);
+        paint.setTextAlign(Paint.Align.CENTER);
+        canvas.drawText("ATTENDANCE REPORT", pageWidth / 2f, y, paint);
 
+        paint.setTextAlign(Paint.Align.LEFT);
         paint.setTextSize(12);
         paint.setFakeBoldText(false);
         y += 30;
 
-        canvas.drawText("Teacher: " + teacherName, 40, y, paint); y += 20;
-        canvas.drawText("Subject: " + spinnerSubject.getSelectedItem(), 40, y, paint); y += 20;
-        canvas.drawText("Time Slot: " + spinnerTimeSlot.getSelectedItem(), 40, y, paint); y += 20;
-        canvas.drawText("Date: " + edtDate.getText().toString(), 40, y, paint); y += 30;
-
-        paint.setFakeBoldText(true);
-        canvas.drawText("Student Name", 40, y, paint);
-        canvas.drawText("Time", 200, y, paint);
-        canvas.drawText("Status", 300, y, paint);
-        canvas.drawText("Device ID", 380, y, paint);
-        paint.setFakeBoldText(false);
-
+        // ================= META INFO =================
+        canvas.drawText("Teacher: " + teacherName, margin, y, paint);
+        canvas.drawText("Date: " + edtDate.getText().toString(), 380, y, paint);
         y += 18;
 
+        canvas.drawText("Subject: " + spinnerSubject.getSelectedItem(), margin, y, paint);
+        canvas.drawText("Time Slot: " + spinnerTimeSlot.getSelectedItem(), 380, y, paint);
+        y += 30;
+
+        // ================= TABLE SETUP =================
+        int tableLeft = margin;
+        int tableRight = pageWidth - margin;
+
+        int colStudent = tableLeft;
+        int colTime = colStudent + 140;
+        int colStatus = colTime + 90;
+        int colDevice = colStatus + 90;
+
+        paint.setTextSize(10);
+        paint.setStyle(Paint.Style.STROKE);
+        paint.setFakeBoldText(true);
+
+        // ================= TABLE HEADER =================
+        canvas.drawRect(tableLeft, y, tableRight, y + rowHeight, paint);
+
+        canvas.drawLine(colTime, y, colTime, y + rowHeight, paint);
+        canvas.drawLine(colStatus, y, colStatus, y + rowHeight, paint);
+        canvas.drawLine(colDevice, y, colDevice, y + rowHeight, paint);
+
+        canvas.drawText("Student Name", colStudent + 5, y + 18, paint);
+        canvas.drawText("Time", colTime + 5, y + 18, paint);
+        canvas.drawText("Status", colStatus + 5, y + 18, paint);
+        canvas.drawText("Device ID", colDevice + 5, y + 18, paint);
+
+        y += rowHeight;
+        paint.setFakeBoldText(false);
+
+        // ================= TABLE ROWS =================
         for (AttendanceModel a : attendanceList) {
-            canvas.drawText(a.getStudentName(), 40, y, paint);
-            canvas.drawText(a.getTime(), 200, y, paint);
-            canvas.drawText("PRESENT", 300, y, paint);
-            canvas.drawText(a.getDeviceId(), 380, y, paint);
-            y += 16;
+
+            // -------- PAGE BREAK --------
+            if (y + rowHeight > pageHeight - 60) {
+
+                drawFooter(canvas, paint, pageWidth);
+
+                pdf.finishPage(page);
+
+                pageNumber++;
+                page = pdf.startPage(
+                        new PdfDocument.PageInfo.Builder(pageWidth, pageHeight, pageNumber).create()
+                );
+                canvas = page.getCanvas();
+                y = 40;
+
+                // Header repeat (no logo)
+                paint.setFakeBoldText(true);
+                canvas.drawRect(tableLeft, y, tableRight, y + rowHeight, paint);
+                canvas.drawLine(colTime, y, colTime, y + rowHeight, paint);
+                canvas.drawLine(colStatus, y, colStatus, y + rowHeight, paint);
+                canvas.drawLine(colDevice, y, colDevice, y + rowHeight, paint);
+
+                canvas.drawText("Student Name", colStudent + 5, y + 18, paint);
+                canvas.drawText("Time", colTime + 5, y + 18, paint);
+                canvas.drawText("Status", colStatus + 5, y + 18, paint);
+                canvas.drawText("Device ID", colDevice + 5, y + 18, paint);
+
+                y += rowHeight;
+                paint.setFakeBoldText(false);
+            }
+
+            canvas.drawRect(tableLeft, y, tableRight, y + rowHeight, paint);
+            canvas.drawLine(colTime, y, colTime, y + rowHeight, paint);
+            canvas.drawLine(colStatus, y, colStatus, y + rowHeight, paint);
+            canvas.drawLine(colDevice, y, colDevice, y + rowHeight, paint);
+
+            canvas.drawText(trim(a.getStudentName(), 20), colStudent + 5, y + 18, paint);
+            canvas.drawText(a.getTime(), colTime + 5, y + 18, paint);
+            canvas.drawText("PRESENT", colStatus + 5, y + 18, paint);
+            canvas.drawText(trim(a.getDeviceId(), 18), colDevice + 5, y + 18, paint);
+
+            y += rowHeight;
         }
 
-        y += 30;
-        canvas.drawText("NIST Attendance System", 200, y, paint);
-        y += 15;
-        canvas.drawText("Downloaded on: " +
-                        new SimpleDateFormat("dd-MM-yyyy HH:mm", Locale.getDefault())
-                                .format(new Date()),
-                160, y, paint);
-
+        drawFooter(canvas, paint, pageWidth);
         pdf.finishPage(page);
 
         // ================= FILE NAME =================
-        String cleanTeacher = teacherName.replaceAll("\\s+", "_");
-        String cleanSub = spinnerSubject.getSelectedItem().toString().replaceAll("\\s+", "_");
-        String cleanTime = spinnerTimeSlot.getSelectedItem().toString().replace(":", "-");
-
-        String fileName = cleanTeacher + "_" + cleanSub + "_" + cleanTime + ".pdf";
+        String fileName =
+                teacherName.replaceAll("\\s+", "_") + "_" +
+                        spinnerSubject.getSelectedItem().toString().replaceAll("\\s+", "_") + "_" +
+                        spinnerTimeSlot.getSelectedItem().toString().replace(":", "-") + ".pdf";
 
         try {
 
-            // ===== ANDROID 10+ =====
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
 
                 ContentValues values = new ContentValues();
                 values.put(MediaStore.MediaColumns.DISPLAY_NAME, fileName);
@@ -230,16 +314,13 @@ public class AttendanceReportActivity extends AppCompatActivity {
                     os.close();
                 }
 
-            }
-            // ===== ANDROID 9 & BELOW =====
-            else {
+            } else {
 
                 File dir = new File(
                         Environment.getExternalStoragePublicDirectory(
                                 Environment.DIRECTORY_DOWNLOADS),
                         "AttendanceReports"
                 );
-
                 if (!dir.exists()) dir.mkdirs();
 
                 File file = new File(dir, fileName);
@@ -248,11 +329,9 @@ public class AttendanceReportActivity extends AppCompatActivity {
                 fos.close();
             }
 
-            Toast.makeText(
-                    this,
+            Toast.makeText(this,
                     "PDF saved in Downloads/AttendanceReports",
-                    Toast.LENGTH_LONG
-            ).show();
+                    Toast.LENGTH_LONG).show();
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -260,6 +339,27 @@ public class AttendanceReportActivity extends AppCompatActivity {
         }
 
         pdf.close();
+    }
+
+    private void drawFooter(Canvas canvas, Paint paint, int pageWidth) {
+        paint.setTextSize(10);
+        paint.setTextAlign(Paint.Align.CENTER);
+        paint.setFakeBoldText(false);
+
+        String time = new SimpleDateFormat(
+                "dd-MM-yyyy HH:mm", Locale.getDefault()).format(new Date());
+
+        canvas.drawText(
+                "NIST Attendance System | Downloaded on " + time,
+                pageWidth / 2f,
+                820,
+                paint
+        );
+    }
+
+    private String trim(String text, int max) {
+        if (text == null) return "";
+        return text.length() > max ? text.substring(0, max) : text;
     }
 
 
