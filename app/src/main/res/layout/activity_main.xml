@@ -130,6 +130,18 @@
                 android:backgroundTint="#E8EAF6"
                 android:layout_marginTop="10dp"/>
 
+            <TextView
+                android:id="@+id/txtForgotPassword"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Forgot Password?"
+                android:textColor="#3F51B5"
+                android:textStyle="bold"
+                android:layout_marginTop="8dp"
+                android:clickable="true"
+                android:focusable="true"/>
+
+
             <!-- 📘 USER GUIDE -->
             <TextView
                 android:id="@+id/txtUserGuide"

@@ -67,6 +67,11 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(new Intent(MainActivity.this, HelpActivity.class))
         );
 
+        TextView txtForgotPassword = findViewById(R.id.txtForgotPassword);
+
+        txtForgotPassword.setOnClickListener(v -> showForgotPasswordDialog());
+
+
         // ================= 👁️ SHOW / HIDE PASSWORD =================
         edtPassword.setOnLongClickListener(v -> {
             if (isPasswordVisible) {
@@ -181,6 +186,47 @@ public class MainActivity extends AppCompatActivity {
         }
         finish();
     }
+
+    private void showForgotPasswordDialog() {
+
+        EditText edtResetEmail = new EditText(this);
+        edtResetEmail.setHint("Enter your registered email");
+        edtResetEmail.setInputType(android.text.InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS);
+
+        new androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle("Reset Password")
+                .setMessage("We will send a reset link to your email")
+                .setView(edtResetEmail)
+                .setPositiveButton("Send Link", (dialog, which) -> {
+
+                    String email = edtResetEmail.getText().toString().trim();
+
+                    if (email.isEmpty()) {
+                        Toast.makeText(this, "Email required", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+
+                    FirebaseAuth.getInstance()
+                            .sendPasswordResetEmail(email)
+                            .addOnSuccessListener(v ->
+                                    Toast.makeText(
+                                            this,
+                                            "Reset link sent to your email 📧",
+                                            Toast.LENGTH_LONG
+                                    ).show()
+                            )
+                            .addOnFailureListener(e ->
+                                    Toast.makeText(
+                                            this,
+                                            e.getMessage(),
+                                            Toast.LENGTH_SHORT
+                                    ).show()
+                            );
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
 
     // ================= GOOGLE SHEET =================
     private void sendToGoogleSheet(String collection, Map<String, Object> data) {
