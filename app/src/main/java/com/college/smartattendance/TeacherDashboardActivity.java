@@ -1,6 +1,9 @@
 package com.college.smartattendance;
 
+import android.location.Location;
+import android.Manifest;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.os.CountDownTimer;
@@ -15,7 +18,10 @@ import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.app.ActivityCompat;
 
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -46,6 +52,9 @@ public class TeacherDashboardActivity extends AppCompatActivity {
     FirebaseAuth auth;
     FirebaseFirestore db;
 
+    // 🔥 NEW: Location client
+    FusedLocationProviderClient locationClient;
+
     String currentSessionId = "";
     long sessionEndTime;
     Handler qrHandler = new Handler();
@@ -64,11 +73,14 @@ public class TeacherDashboardActivity extends AppCompatActivity {
 
         if (getSupportActionBar() != null) {
             getSupportActionBar().setTitle("Teacher Dashboard");
-            getSupportActionBar().setDisplayHomeAsUpEnabled(true); // back button
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         }
 
         auth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
+
+        // 🔥 NEW: init location client
+        locationClient = LocationServices.getFusedLocationProviderClient(this);
 
         spinnerSubject = findViewById(R.id.spinnerSubject);
         spinnerTime = findViewById(R.id.spinnerTime);
@@ -173,6 +185,9 @@ public class TeacherDashboardActivity extends AppCompatActivity {
 
         sendToGoogleSheet("attendance_sessions", session);
 
+        // 🔥 NEW: Save teacher live location
+        saveTeacherLiveLocation(currentSessionId);
+
         txtQRSubject.setText("Subject: " + spinnerSubject.getSelectedItem());
         txtQRTime.setText("Time Slot: " + spinnerTime.getSelectedItem());
         txtQRId.setText("QR ID: " + currentSessionId.substring(0, 8));
@@ -182,6 +197,34 @@ public class TeacherDashboardActivity extends AppCompatActivity {
 
         startSessionCountdown();
         startDynamicQR();
+    }
+
+    // 🔥 NEW FUNCTION (ADDED)
+    private void saveTeacherLiveLocation(String sessionId) {
+
+        if (ActivityCompat.checkSelfPermission(
+                this, Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
+            return;
+        }
+
+        locationClient.getLastLocation().addOnSuccessListener(location -> {
+
+            if (location == null) return;
+
+            Map<String, Object> loc = new HashMap<>();
+            loc.put("teacherId", auth.getUid());
+            loc.put("latitude", location.getLatitude());
+            loc.put("longitude", location.getLongitude());
+            loc.put("updatedAt", System.currentTimeMillis());
+            loc.put("sessionId", sessionId);
+
+            db.collection("teacher_live_location")
+                    .document(sessionId)
+                    .set(loc);
+
+            sendToGoogleSheet("teacher_live_location", loc);
+        });
     }
 
     // ================= SESSION TIMER =================
@@ -317,5 +360,4 @@ public class TeacherDashboardActivity extends AppCompatActivity {
         startActivity(intent);
         finish();
     }
-
 }
