@@ -355,7 +355,7 @@ public class StudentAttendanceReportActivity extends AppCompatActivity {
         int id = item.getItemId();
 
         if (id == android.R.id.home) {
-            goToWelcome();
+            goToStudentDashboard();
             return true;
         }
 
@@ -369,9 +369,14 @@ public class StudentAttendanceReportActivity extends AppCompatActivity {
     }
 
     @SuppressWarnings("MissingSuperCall")
-    @Override
-    public void onBackPressed() {
-        goToWelcome();
+    private void goToStudentDashboard() {
+        Intent intent = new Intent(
+                StudentAttendanceReportActivity.this,
+                StudentDashboardActivity.class   // ✅ EXACT CLASS FROM YOUR PROJECT
+        );
+        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        startActivity(intent);
+        finish();
     }
 
     private void goToWelcome() {
