@@ -341,13 +341,23 @@ public class StudentDashboardActivity extends AppCompatActivity {
         record.put("date", date);
         record.put("time", time);
         record.put("timeSlot", sessionDoc.getString("timeSlot"));
+        record.put("classTime", sessionDoc.getString("timeSlot"));
         record.put("teacherName", sessionDoc.getString("teacherName"));
 
         db.collection("attendance_records")
                 .add(record)
                 .addOnSuccessListener(v -> {
+
                     sendToGoogleSheet("attendance_records", record);
-                    startActivity(new Intent(this, AttendanceSuccessActivity.class));
+
+                    Intent intent = new Intent(this, AttendanceSuccessActivity.class);
+                    intent.putExtra("studentName", studentName);
+                    intent.putExtra("subject", sessionDoc.getString("subject"));
+                    intent.putExtra("timeSlot", sessionDoc.getString("timeSlot"));
+                    intent.putExtra("teacherName", sessionDoc.getString("teacherName"));
+                    intent.putExtra("markedTime", time);
+
+                    startActivity(intent);
                 });
     }
 

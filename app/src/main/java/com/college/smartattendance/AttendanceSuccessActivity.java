@@ -103,6 +103,7 @@ public class AttendanceSuccessActivity extends AppCompatActivity {
     }
 
     // 🔷 MOBILE BACK BUTTON
+    @SuppressWarnings("MissingSuperCall")
     @Override
     public void onBackPressed() {
         goToWelcome();
