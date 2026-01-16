@@ -45,14 +45,14 @@ public class StudentDashboardActivity extends AppCompatActivity {
     private FirebaseAuth auth;
     private FirebaseFirestore db;
 
-    TextView txtWelcome, txtDateTime;
+    TextView txtWelcome, txtDateTime, txtDistance;
 
-    // 🔥 OLD FIXED LOCATION (KEPT – NOT REMOVED)
+    // OLD (kept, unused now)
     private static final double CLASS_LAT = 19.654679;
     private static final double CLASS_LNG = 85.004503;
     private static final float ALLOWED_RADIUS = 150;
 
-    // 🔥 NEW DYNAMIC RADIUS (TEACHER BASED)
+    // NEW dynamic radius
     private static final float TEACHER_RADIUS = 100;
 
     private static final long QR_VALIDITY_MS = 10_000;
@@ -78,6 +78,7 @@ public class StudentDashboardActivity extends AppCompatActivity {
 
         txtWelcome = findViewById(R.id.txtWelcome);
         txtDateTime = findViewById(R.id.txtDateTime);
+        txtDistance = findViewById(R.id.txtDistance);
 
         Button btnScanQR = findViewById(R.id.btnScanQR);
         btnScanQR.setOnClickListener(v -> checkLocationThenScan());
@@ -118,7 +119,7 @@ public class StudentDashboardActivity extends AppCompatActivity {
         });
     }
 
-    // ================= LOCATION CHECK (UNCHANGED) =================
+    // ================= LOCATION CHECK =================
     private void checkLocationThenScan() {
 
         if (ActivityCompat.checkSelfPermission(
@@ -134,11 +135,15 @@ public class StudentDashboardActivity extends AppCompatActivity {
         }
 
         locationClient.getLastLocation().addOnSuccessListener(location -> {
+
             if (location == null) {
-                Toast.makeText(this, "Location not available", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this,
+                        "Waiting for GPS signal. Please turn ON location.",
+                        Toast.LENGTH_SHORT).show();
                 return;
             }
-            startQRScan(); // 🔥 allow scan, dynamic check happens later
+
+            startQRScan(); // QR allowed, distance later
         });
     }
 
@@ -196,14 +201,13 @@ public class StudentDashboardActivity extends AppCompatActivity {
                         return;
                     }
 
-                    // 🔥 NEW: Dynamic distance check
                     checkDistanceWithTeacher(sessionId, () ->
                             checkDuplicateAndSave(sessionId, sessionDoc)
                     );
                 });
     }
 
-    // ================= 🔥 NEW FUNCTION =================
+    // ================= 🔥 DISTANCE CHECK + LIVE DISPLAY =================
     private void checkDistanceWithTeacher(String sessionId, Runnable onSuccess) {
 
         if (ActivityCompat.checkSelfPermission(
@@ -227,33 +231,26 @@ public class StudentDashboardActivity extends AppCompatActivity {
                             return;
                         }
 
-                        // 🔒 SAFE FETCH (NO DELETION)
                         Double tLatObj = doc.getDouble("latitude");
                         Double tLngObj = doc.getDouble("longitude");
 
                         if (tLatObj == null || tLngObj == null) {
-                            Toast.makeText(
-                                    this,
+                            Toast.makeText(this,
                                     "Teacher location not available",
-                                    Toast.LENGTH_LONG
-                            ).show();
+                                    Toast.LENGTH_LONG).show();
                             return;
                         }
 
                         double tLat = tLatObj;
                         double tLng = tLngObj;
 
-                        // 🔐 ✅ SAFETY FEATURE (ADDED)
                         if (Math.abs(tLat) < 1 && Math.abs(tLng) < 1) {
-                            Toast.makeText(
-                                    this,
-                                    "Teacher location not ready. Ask teacher to enable GPS.",
-                                    Toast.LENGTH_LONG
-                            ).show();
+                            Toast.makeText(this,
+                                    "Teacher GPS not ready. Ask teacher to enable location.",
+                                    Toast.LENGTH_LONG).show();
                             return;
                         }
 
-                        // ✅ ORIGINAL DISTANCE LOGIC (UNCHANGED)
                         float[] result = new float[1];
                         Location.distanceBetween(
                                 studentLoc.getLatitude(),
@@ -263,14 +260,15 @@ public class StudentDashboardActivity extends AppCompatActivity {
                                 result
                         );
 
-                        if (result[0] <= TEACHER_RADIUS) {
+                        int distance = (int) result[0];
+                        txtDistance.setText("Distance from teacher: " + distance + " m");
+
+                        if (distance <= TEACHER_RADIUS) {
                             onSuccess.run();
                         } else {
-                            Toast.makeText(
-                                    this,
-                                    "You are too far from teacher (" + (int) result[0] + "m)",
-                                    Toast.LENGTH_LONG
-                            ).show();
+                            Toast.makeText(this,
+                                    "Too far from teacher (" + distance + " m)",
+                                    Toast.LENGTH_LONG).show();
                         }
                     });
         });
@@ -391,13 +389,11 @@ public class StudentDashboardActivity extends AppCompatActivity {
 
         int id = item.getItemId();
 
-        // 🔙 Toolbar back button
         if (id == android.R.id.home) {
             goToWelcome();
             return true;
         }
 
-        // 🚪 Logout button
         if (id == R.id.action_logout) {
             FirebaseAuth.getInstance().signOut();
             goToWelcome();
@@ -407,14 +403,12 @@ public class StudentDashboardActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    // ================= HANDLE PHONE BACK =================
     @SuppressWarnings("MissingSuperCall")
     @Override
     public void onBackPressed() {
         goToWelcome();
     }
 
-    // ================= NAVIGATION METHOD =================
     private void goToWelcome() {
         Intent intent = new Intent(this, WelcomeActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);

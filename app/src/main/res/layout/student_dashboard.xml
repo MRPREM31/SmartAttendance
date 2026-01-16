@@ -10,90 +10,131 @@
     <include layout="@layout/toolbar_main"/>
 
     <!-- 🔷 CONTENT -->
-    <LinearLayout
+    <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical"
-        android:padding="24dp">
+        android:fillViewport="true">
 
-        <!-- 👋 WELCOME TEXT -->
-        <TextView
-            android:id="@+id/txtWelcome"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Hi Student 👋"
-            android:textSize="20sp"
-            android:textStyle="bold"
-            android:textColor="#1A237E"
-            android:layout_marginBottom="6dp"/>
-
-        <TextView
-            android:id="@+id/txtSubWelcome"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Welcome to NIST Attendance System"
-            android:textSize="14sp"
-            android:textColor="#555555"
-            android:layout_marginBottom="24dp"/>
-
-        <!-- 🎓 STUDENT IMAGE -->
-        <ImageView
-            android:layout_width="120dp"
-            android:layout_height="120dp"
-            android:layout_gravity="center"
-            android:src="@drawable/student_logo"
-            android:layout_marginBottom="24dp"/>
-
-        <!-- TITLE -->
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Student Dashboard"
-            android:textSize="22sp"
-            android:textStyle="bold"
-            android:textColor="#1A237E"
-            android:layout_gravity="center"
-            android:layout_marginBottom="24dp"/>
-
-        <!-- SCAN BUTTON -->
-        <Button
-            android:id="@+id/btnScanQR"
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="54dp"
-            android:text="Scan QR for Attendance"
-            android:textAllCaps="false"
-            android:textColor="@android:color/white"
-            android:textStyle="bold"
-            android:backgroundTint="#3F51B5"
-            android:layout_marginBottom="32dp"/>
-
-        <Button
-            android:id="@+id/btnViewReport"
-            android:layout_width="match_parent"
-            android:layout_height="54dp"
-            android:text="View Attendance Report"
-            android:textAllCaps="false"
-            android:textColor="@android:color/white"
-            android:textStyle="bold"
-            android:backgroundTint="#009688"
-            android:layout_marginBottom="24dp"/>
-
-        <!-- 🔽 PUSH TIME TO BOTTOM -->
-        <Space
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"/>
-
-        <!-- 🕒 LIVE DATE & TIME -->
-        <TextView
-            android:id="@+id/txtDateTime"
-            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Loading time..."
-            android:textSize="14sp"
-            android:textColor="#37474F"
-            android:layout_gravity="center"/>
+            android:orientation="vertical"
+            android:padding="24dp">
 
-    </LinearLayout>
+            <!-- 👋 WELCOME TEXT -->
+            <TextView
+                android:id="@+id/txtWelcome"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Hi Student 👋"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:textColor="#1A237E"
+                android:layout_marginBottom="4dp"/>
+
+            <TextView
+                android:id="@+id/txtSubWelcome"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Welcome to NIST Attendance System"
+                android:textSize="14sp"
+                android:textColor="#555555"
+                android:layout_marginBottom="20dp"/>
+
+            <!-- 🎓 STUDENT IMAGE -->
+            <ImageView
+                android:layout_width="120dp"
+                android:layout_height="120dp"
+                android:layout_gravity="center"
+                android:src="@drawable/student_logo"
+                android:layout_marginBottom="20dp"/>
+
+            <!-- TITLE -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Student Dashboard"
+                android:textSize="22sp"
+                android:textStyle="bold"
+                android:textColor="#1A237E"
+                android:layout_gravity="center"
+                android:layout_marginBottom="24dp"/>
+
+            <!-- SCAN BUTTON -->
+            <Button
+                android:id="@+id/btnScanQR"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:text="Scan QR for Attendance"
+                android:textAllCaps="false"
+                android:textColor="@android:color/white"
+                android:textStyle="bold"
+                android:backgroundTint="#3F51B5"
+                android:layout_marginBottom="16dp"/>
+
+            <!-- 📍 LIVE DISTANCE CARD -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:padding="16dp"
+                android:background="@drawable/bg_distance_card"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="20dp">
+
+                <ImageView
+                    android:layout_width="28dp"
+                    android:layout_height="28dp"
+                    android:src="@drawable/ic_location"
+                    android:layout_marginEnd="12dp"/>
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Distance from Teacher"
+                        android:textSize="12sp"
+                        android:textColor="#607D8B"/>
+
+                    <TextView
+                        android:id="@+id/txtDistance"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="-- m"
+                        android:textSize="18sp"
+                        android:textStyle="bold"
+                        android:textColor="#1A237E"/>
+                </LinearLayout>
+
+            </LinearLayout>
+
+            <!-- VIEW REPORT BUTTON -->
+            <Button
+                android:id="@+id/btnViewReport"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:text="View Attendance Report"
+                android:textAllCaps="false"
+                android:textColor="@android:color/white"
+                android:textStyle="bold"
+                android:backgroundTint="#009688"
+                android:layout_marginBottom="24dp"/>
+
+            <!-- 🕒 LIVE DATE & TIME -->
+            <TextView
+                android:id="@+id/txtDateTime"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Loading time..."
+                android:textSize="14sp"
+                android:textColor="#37474F"
+                android:layout_gravity="center"/>
+
+        </LinearLayout>
+    </ScrollView>
 
 </LinearLayout>
