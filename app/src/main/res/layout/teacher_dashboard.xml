@@ -10,12 +10,10 @@
     <!-- 🔷 TOOLBAR -->
     <include layout="@layout/toolbar_main" />
 
-    <!-- 🔷 CONTENT -->
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:fillViewport="true"
-        android:paddingBottom="24dp">
+        android:fillViewport="true">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -23,36 +21,7 @@
             android:orientation="vertical"
             android:padding="20dp">
 
-            <!-- 👨‍🏫 LOGO -->
-            <androidx.cardview.widget.CardView
-                android:layout_width="120dp"
-                android:layout_height="120dp"
-                android:layout_gravity="center"
-                app:cardCornerRadius="18dp"
-                app:cardElevation="8dp"
-                android:layout_marginBottom="18dp">
-
-                <ImageView
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:src="@drawable/teacher_logo"
-                    android:padding="18dp"
-                    android:background="#FFFFFF" />
-            </androidx.cardview.widget.CardView>
-
-            <!-- GREETING -->
-            <TextView
-                android:id="@+id/txtGreeting"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Hi Teacher 👋"
-                android:textSize="22sp"
-                android:textStyle="bold"
-                android:textColor="#1A237E"
-                android:layout_gravity="center"
-                android:layout_marginBottom="8dp" />
-
-            <!-- DATE TIME -->
+            <!-- 🕒 DATE & TIME -->
             <TextView
                 android:id="@+id/txtDateTime"
                 android:layout_width="wrap_content"
@@ -62,16 +31,70 @@
                 android:textStyle="bold"
                 android:textColor="#37474F"
                 android:layout_gravity="center"
-                android:layout_marginBottom="24dp" />
+                android:layout_marginBottom="16dp" />
 
-            <!-- SUBJECT -->
+            <!-- 👨‍🏫 PROFILE IMAGE -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="110dp"
+                android:layout_height="110dp"
+                android:layout_gravity="center"
+                app:cardCornerRadius="55dp"
+                app:cardElevation="8dp"
+                android:layout_marginBottom="12dp">
+
+                <ImageView
+                    android:id="@+id/imgProfile"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:src="@drawable/teacher_logo"
+                    android:scaleType="centerCrop"
+                    android:background="#FFFFFF" />
+            </androidx.cardview.widget.CardView>
+
+            <!-- 👋 GREETING -->
             <TextView
+                android:id="@+id/txtGreeting"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Hi Teacher 👋"
+                android:textSize="22sp"
+                android:textStyle="bold"
+                android:textColor="#1A237E"
+                android:layout_gravity="center"
+                android:layout_marginBottom="12dp" />
+
+            <!-- 🔘 ACTION BUTTONS -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center"
+                android:layout_marginBottom="20dp">
+
+                <Button
+                    android:id="@+id/btnUploadImage"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Upload Image"
+                    android:textAllCaps="false"
+                    android:layout_marginEnd="12dp" />
+
+                <Button
+                    android:id="@+id/btnEditSubjects"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Edit Subjects"
+                    android:textAllCaps="false" />
+            </LinearLayout>
+
+            <!-- 📘 SUBJECT -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
                 android:text="Select Subject"
                 android:textColor="#3F51B5"
                 android:textStyle="bold"
-                android:layout_marginBottom="6dp"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
+                android:layout_marginBottom="6dp" />
 
             <Spinner
                 android:id="@+id/spinnerSubject"
@@ -81,14 +104,14 @@
                 android:backgroundTint="#3F51B5"
                 android:layout_marginBottom="16dp" />
 
-            <!-- TIME SLOT -->
+            <!-- ⏰ TIME SLOT -->
             <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
                 android:text="Select Time Slot"
                 android:textColor="#3F51B5"
                 android:textStyle="bold"
-                android:layout_marginBottom="6dp"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
+                android:layout_marginBottom="6dp" />
 
             <Spinner
                 android:id="@+id/spinnerTime"
@@ -98,7 +121,7 @@
                 android:backgroundTint="#3F51B5"
                 android:layout_marginBottom="20dp" />
 
-            <!-- COUNTDOWN -->
+            <!-- ⏳ COUNTDOWN -->
             <TextView
                 android:id="@+id/txtCountdown"
                 android:layout_width="wrap_content"
@@ -106,11 +129,11 @@
                 android:text="Session ends in 60 sec"
                 android:textColor="#D32F2F"
                 android:textStyle="bold"
-                android:visibility="gone"
                 android:layout_gravity="center"
+                android:visibility="gone"
                 android:layout_marginBottom="16dp" />
 
-            <!-- GENERATE QR -->
+            <!-- 🔳 GENERATE QR -->
             <Button
                 android:id="@+id/btnGenerateQR"
                 android:layout_width="match_parent"
@@ -122,7 +145,7 @@
                 android:backgroundTint="#3F51B5"
                 android:layout_marginBottom="20dp" />
 
-            <!-- QR CARD -->
+            <!-- 📷 QR IMAGE -->
             <androidx.cardview.widget.CardView
                 android:layout_width="260dp"
                 android:layout_height="260dp"
@@ -139,7 +162,7 @@
                     android:background="#E8EBFF" />
             </androidx.cardview.widget.CardView>
 
-            <!-- QR DETAILS -->
+            <!-- ℹ️ QR DETAILS -->
             <TextView
                 android:id="@+id/txtQRSubject"
                 android:layout_width="wrap_content"
@@ -168,7 +191,7 @@
                 android:layout_gravity="center"
                 android:layout_marginBottom="24dp" />
 
-            <!-- VIEW ATTENDANCE -->
+            <!-- 📊 VIEW ATTENDANCE -->
             <Button
                 android:id="@+id/btnViewAttendance"
                 android:layout_width="match_parent"
