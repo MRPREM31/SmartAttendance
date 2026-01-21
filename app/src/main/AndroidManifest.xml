@@ -58,6 +58,8 @@
         <activity android:name=".TeacherAttendanceListActivity" android:exported="false" />
         <activity android:name=".StudentDashboardActivity" android:exported="false" />
         <activity android:name=".AttendanceSuccessActivity" android:exported="false" />
+        <activity android:name=".UserGuidelinesActivity" android:exported="false" />
+        <activity android:name=".WebViewActivity" android:exported="false" />
 
         <!-- 👨‍🎓 STUDENT ATTENDANCE REPORT (ADDED SAFELY) -->
         <activity

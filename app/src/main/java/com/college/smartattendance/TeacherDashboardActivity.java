@@ -136,13 +136,12 @@ public class TeacherDashboardActivity extends AppCompatActivity {
                 new ActivityResultContracts.GetContent(),
                 uri -> {
                     if (uri != null) {
-                        getContentResolver().takePersistableUriPermission(
-                                uri,
-                                Intent.FLAG_GRANT_READ_URI_PERMISSION
-                        );
-
-                        saveImageUri(uri);
-                        imgProfile.setImageURI(uri);
+                        try {
+                            saveImageUri(uri);
+                            imgProfile.setImageURI(uri);
+                        } catch (Exception e) {
+                            imgProfile.setImageResource(R.drawable.teacher_logo);
+                        }
                     }
                 }
         );

@@ -1,0 +1,247 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#EEF2FF">
+
+    <!-- TOOLBAR -->
+    <include layout="@layout/toolbar_main"/>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:padding="16dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- HEADER -->
+            <TextView
+                android:text="📘 User Guidelines"
+                android:textSize="24sp"
+                android:textStyle="bold"
+                android:textColor="#1A237E"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+
+            <TextView
+                android:text="Complete step-by-step guide to use Smart Attendance System"
+                android:textSize="14sp"
+                android:textColor="#475569"
+                android:layout_marginBottom="20dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+
+            <!-- ================= STUDENT GUIDE ================= -->
+            <LinearLayout
+                android:orientation="vertical"
+                android:background="@android:color/white"
+                android:padding="16dp"
+                android:layout_marginBottom="16dp"
+                android:elevation="3dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:text="👨‍🎓 Student User Guide"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:textColor="#2563EB"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+
+                <TextView
+                    android:text="1. Install the Smart Attendance App.\n\n2. Allow Camera and Location permissions.\n\n3. Login using your registered email and password.\n\n4. Open the app only during class time.\n\n5. Ensure GPS and Internet are ON.\n\n6. Tap on 'Scan QR for Attendance'.\n\n7. Scan the QR code shown by the teacher.\n\n8. System automatically checks:\n   • QR validity time\n   • Distance from teacher (Geo-fencing)\n   • Duplicate attendance\n\n9. If all checks pass, attendance is marked PRESENT.\n\n10. If failed, a proper message is shown (QR expired, too far, GPS off).\n\n11. View attendance reports anytime.\n\n12. Low attendance may be highlighted for awareness."
+                    android:textSize="14sp"
+                    android:textColor="#374151"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"/>
+            </LinearLayout>
+
+            <!-- ================= TEACHER GUIDE ================= -->
+            <LinearLayout
+                android:orientation="vertical"
+                android:background="@android:color/white"
+                android:padding="16dp"
+                android:layout_marginBottom="16dp"
+                android:elevation="3dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:text="👨‍🏫 Teacher User Guide"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:textColor="#2563EB"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+
+                <TextView
+                    android:text="1. Login using teacher credentials.\n\n2. Add or edit subjects you teach.\n\n3. Select subject and time slot.\n\n4. Tap 'Generate QR'.\n\n5. A unique dynamic QR is generated.\n\n6. QR refreshes automatically and expires after time limit.\n\n7. Teacher GPS location is shared securely.\n\n8. Students scan QR to mark attendance.\n\n9. Duplicate scans are blocked.\n\n10. End session after class.\n\n11. View total present students.\n\n12. Download attendance report as PDF."
+                    android:textSize="14sp"
+                    android:textColor="#374151"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"/>
+            </LinearLayout>
+
+            <!-- ================= SYSTEM FLOW ================= -->
+            <LinearLayout
+                android:orientation="vertical"
+                android:background="@android:color/white"
+                android:padding="16dp"
+                android:layout_marginBottom="16dp"
+                android:elevation="3dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:text="🔄 System Working Flow"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:textColor="#2563EB"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+
+                <TextView
+                    android:text="• Teacher starts attendance session\n• Dynamic QR code is generated\n• Teacher GPS location is stored\n• Student scans QR code\n• Student location is verified\n• Distance is calculated\n• QR validity is checked\n• Duplicate attendance is blocked\n• Attendance stored securely\n• Reports generated automatically"
+                    android:textSize="14sp"
+                    android:textColor="#374151"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"/>
+            </LinearLayout>
+
+            <!-- ================= FAQ ================= -->
+            <LinearLayout
+                android:orientation="vertical"
+                android:background="@android:color/white"
+                android:padding="16dp"
+                android:layout_marginBottom="16dp"
+                android:elevation="3dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:text="❓ Frequently Asked Questions (FAQ)"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:textColor="#2563EB"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+
+                <TextView
+                    android:text="• Can I mark attendance from outside class? ❌ No\n\n• Can QR be reused? ❌ No\n\n• Can I scan QR later? ❌ No\n\n• Is Bluetooth required? ❌ No\n\n• What if GPS is OFF? ❌ Attendance blocked\n\n• Can one student mark twice? ❌ No\n\n• Are reports downloadable? ✅ Yes"
+                    android:textSize="14sp"
+                    android:textColor="#374151"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"/>
+            </LinearLayout>
+
+            <!-- ================= TERMS ================= -->
+            <LinearLayout
+                android:orientation="vertical"
+                android:background="@android:color/white"
+                android:padding="16dp"
+                android:layout_marginBottom="16dp"
+                android:elevation="3dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:text="📜 Terms And Conditions"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:textColor="#2563EB"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+
+                <TextView
+                    android:text="• This app is for educational use only.\n• Proxy attendance is strictly prohibited.\n• Location, time and device ID are logged.\n• Attendance once marked cannot be edited.\n• Misuse may lead to disciplinary action.\n• App is not responsible for GPS or network issues."
+                    android:textSize="14sp"
+                    android:textColor="#374151"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"/>
+            </LinearLayout>
+
+            <!-- ================= PERMISSIONS ================= -->
+            <LinearLayout
+                android:orientation="vertical"
+                android:background="@android:color/white"
+                android:padding="16dp"
+                android:layout_marginBottom="16dp"
+                android:elevation="3dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:text="🔐 Permissions Used"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:textColor="#2563EB"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+
+                <TextView
+                    android:text="📍 Location: Verify classroom presence\n📷 Camera: Scan QR code\n🌐 Internet: Sync attendance\n📁 Storage: Save reports And images\n\nPermissions are used only for app functionality."
+                    android:textSize="14sp"
+                    android:textColor="#374151"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"/>
+            </LinearLayout>
+
+            <!-- ================= CONTACT ================= -->
+            <LinearLayout
+                android:orientation="vertical"
+                android:background="@android:color/white"
+                android:padding="16dp"
+                android:elevation="3dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:text="📞 Contact And Support"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:textColor="#2563EB"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+
+                <Button
+                    android:id="@+id/btnCompanySite"
+                    android:text="🌐 Company Website : https://quantumcoders.vercel.app/"
+                    android:backgroundTint="#2563EB"
+                    android:textColor="@android:color/white"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"/>
+
+                <Button
+                    android:id="@+id/btnCompanyEmail"
+                    android:text="📧 Email Us : quantumcoderstechlab@gmail.com"
+                    android:backgroundTint="#0D9488"
+                    android:textColor="@android:color/white"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"/>
+
+                <Button
+                    android:id="@+id/btnDeveloperSite"
+                    android:text="👨‍💻 Developer Website : https://www.mrprem.in/"
+                    android:backgroundTint="#7C3AED"
+                    android:textColor="@android:color/white"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"/>
+
+                <Button
+                    android:id="@+id/btnContribute"
+                    android:text="🤝 Contribute With Us : https://quantumcoders.vercel.app/join-quantumcoders.html"
+                    android:backgroundTint="#F97316"
+                    android:textColor="@android:color/white"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"/>
+            </LinearLayout>
+
+        </LinearLayout>
+    </ScrollView>
+
+</LinearLayout>
