@@ -1,6 +1,12 @@
 package com.college.smartattendance;
 
 import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.os.Build;
+import android.net.Uri;
+import android.content.ContentValues;
+import android.provider.MediaStore;
+import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.content.ContentValues;
@@ -31,6 +37,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.*;
+import com.google.firebase.auth.FirebaseUser;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -89,7 +96,8 @@ public class AttendanceReportActivity extends AppCompatActivity {
         recyclerAttendance.setAdapter(adapter);
 
         loadTeacherName();
-        setupSpinners();
+        loadSubjectsFromProfile();
+        setupTimeSlotSpinner();
         setupDatePicker();
         checkPermission();
 
@@ -105,17 +113,55 @@ public class AttendanceReportActivity extends AppCompatActivity {
                 });
     }
 
-    private void setupSpinners() {
-        spinnerSubject.setAdapter(new ArrayAdapter<>(this,
-                android.R.layout.simple_spinner_dropdown_item,
-                new String[]{"GEE","CI","FLAT","OS","PYTHON","AI","RES","FLAT LAB","OS LAB","PYTHON LAB"}));
+    private void loadSubjectsFromProfile() {
 
+        FirebaseUser user = auth.getCurrentUser();
+        if (user == null) return;
+
+        db.collection("teacher_profiles")
+                .document(user.getUid())   // ✅ USE UID
+                .get()
+                .addOnSuccessListener(doc -> {
+
+                    if (!doc.exists()) {
+                        Toast.makeText(this,
+                                "No subjects found. Please add subjects first.",
+                                Toast.LENGTH_LONG).show();
+                        return;
+                    }
+
+                    List<String> subjects = (List<String>) doc.get("subjects");
+
+                    if (subjects == null || subjects.isEmpty()) {
+                        Toast.makeText(this,
+                                "No subjects assigned to this teacher",
+                                Toast.LENGTH_LONG).show();
+                        return;
+                    }
+
+                    spinnerSubject.setAdapter(new ArrayAdapter<>(
+                            this,
+                            android.R.layout.simple_spinner_dropdown_item,
+                            subjects
+                    ));
+                })
+                .addOnFailureListener(e ->
+                        Toast.makeText(this,
+                                "Failed to load subjects",
+                                Toast.LENGTH_SHORT).show());
+    }
+
+
+    private void setupTimeSlotSpinner() {
         spinnerTimeSlot.setAdapter(new ArrayAdapter<>(this,
                 android.R.layout.simple_spinner_dropdown_item,
-                new String[]{"08:00-09:00","09:00-10:00","10:00-11:00",
-                             "11:00-12:00","12:00-01:00","01:00-02:00",
-                             "02:00-03:00","03:00-04:00","04:00-05:00"}));
+                new String[]{
+                        "08:00-09:00","09:00-10:00","10:00-11:00",
+                        "11:00-12:00","12:00-01:00","01:00-02:00",
+                        "02:00-03:00","03:00-04:00","04:00-05:00"
+                }));
     }
+
 
     private void setupDatePicker() {
         edtDate.setOnClickListener(v -> {
