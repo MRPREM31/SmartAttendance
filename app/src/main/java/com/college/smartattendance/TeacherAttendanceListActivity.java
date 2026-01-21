@@ -109,8 +109,8 @@ public class TeacherAttendanceListActivity extends AppCompatActivity {
     @Override
     public void onBackPressed() {
         goToTeacherDashboard();
+        super.onBackPressed();
     }
-
     // ================= NAVIGATION HELPERS =================
     private void goToTeacherDashboard() {
         Intent intent = new Intent(this, TeacherDashboardActivity.class);
