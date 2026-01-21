@@ -2,8 +2,10 @@ package com.college.smartattendance;
 
 import android.Manifest;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Location;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.provider.Settings;
@@ -11,10 +13,12 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
@@ -46,25 +50,24 @@ public class StudentDashboardActivity extends AppCompatActivity {
     private FirebaseFirestore db;
 
     TextView txtWelcome, txtDateTime, txtDistance;
+    ImageView imgStudentProfile;
+    Button btnUploadStudentImage;
 
-    // OLD (kept, unused now)
-    private static final double CLASS_LAT = 19.654679;
-    private static final double CLASS_LNG = 85.004503;
-    private static final float ALLOWED_RADIUS = 150;
-
-    // NEW dynamic radius
+    // Distance config
     private static final float TEACHER_RADIUS = 100;
-
     private static final long QR_VALIDITY_MS = 10_000;
 
     private static final String GOOGLE_SCRIPT_URL =
             "https://script.google.com/macros/s/AKfycbxarlUMGk9HjBb3F4I3RllhYGVJblff7qvQgdi-g0Ey9xHA1bLkHh9jKAibItThop6G/exec";
+
+    ActivityResultLauncher<String> studentImagePickerLauncher;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.student_dashboard);
 
+        // 🔷 Toolbar
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         if (getSupportActionBar() != null) {
@@ -76,19 +79,44 @@ public class StudentDashboardActivity extends AppCompatActivity {
         db = FirebaseFirestore.getInstance();
         locationClient = LocationServices.getFusedLocationProviderClient(this);
 
+        // 🔷 Views
         txtWelcome = findViewById(R.id.txtWelcome);
         txtDateTime = findViewById(R.id.txtDateTime);
         txtDistance = findViewById(R.id.txtDistance);
 
+        imgStudentProfile = findViewById(R.id.imgStudentProfile);
+        btnUploadStudentImage = findViewById(R.id.btnUploadStudentImage);
+
         Button btnScanQR = findViewById(R.id.btnScanQR);
-        btnScanQR.setOnClickListener(v -> checkLocationThenScan());
-
-        loadStudentName();
-        startLiveDateTime();
-
         Button btnViewReport = findViewById(R.id.btnViewReport);
+
+        btnScanQR.setOnClickListener(v -> checkLocationThenScan());
         btnViewReport.setOnClickListener(v ->
                 startActivity(new Intent(this, StudentAttendanceReportActivity.class)));
+
+        // 🔷 Load data
+        loadStudentName();
+        startLiveDateTime();
+        loadStudentProfileImage();
+
+        // 🔷 Image picker
+        studentImagePickerLauncher =
+                registerForActivityResult(
+                        new ActivityResultContracts.GetContent(),
+                        uri -> {
+                            if (uri != null) {
+                                getContentResolver().takePersistableUriPermission(
+                                        uri,
+                                        Intent.FLAG_GRANT_READ_URI_PERMISSION
+                                );
+                                saveStudentImageUri(uri);
+                                imgStudentProfile.setImageURI(uri);
+                            }
+                        }
+                );
+
+        btnUploadStudentImage.setOnClickListener(v ->
+                studentImagePickerLauncher.launch("image/*"));
     }
 
     // ================= LOAD STUDENT NAME =================
@@ -387,6 +415,18 @@ public class StudentDashboardActivity extends AppCompatActivity {
         }).start();
     }
 
+    // ================= STUDENT IMAGE STORAGE =================
+    private void saveStudentImageUri(Uri uri) {
+        SharedPreferences sp = getSharedPreferences("student_prefs", MODE_PRIVATE);
+        sp.edit().putString("profile_image_uri", uri.toString()).apply();
+    }
+
+    private void loadStudentProfileImage() {
+        SharedPreferences sp = getSharedPreferences("student_prefs", MODE_PRIVATE);
+        String uriStr = sp.getString("profile_image_uri", null);
+        if (uriStr != null) imgStudentProfile.setImageURI(Uri.parse(uriStr));
+    }
+
     // ================= MENU =================
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -405,6 +445,11 @@ public class StudentDashboardActivity extends AppCompatActivity {
         }
 
         if (id == R.id.action_logout) {
+
+            SharedPreferences sp =
+                    getSharedPreferences("student_prefs", MODE_PRIVATE);
+            sp.edit().clear().apply();
+
             FirebaseAuth.getInstance().signOut();
             goToWelcome();
             return true;
