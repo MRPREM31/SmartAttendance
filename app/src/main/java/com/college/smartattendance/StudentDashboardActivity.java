@@ -105,12 +105,16 @@ public class StudentDashboardActivity extends AppCompatActivity {
                         new ActivityResultContracts.GetContent(),
                         uri -> {
                             if (uri != null) {
-                                getContentResolver().takePersistableUriPermission(
-                                        uri,
-                                        Intent.FLAG_GRANT_READ_URI_PERMISSION
-                                );
-                                saveStudentImageUri(uri);
-                                imgStudentProfile.setImageURI(uri);
+                                try {
+                                    saveStudentImageUri(uri);
+                                    imgStudentProfile.setImageURI(uri);
+                                } catch (Exception e) {
+                                    Toast.makeText(
+                                            this,
+                                            "Failed to load image",
+                                            Toast.LENGTH_SHORT
+                                    ).show();
+                                }
                             }
                         }
                 );

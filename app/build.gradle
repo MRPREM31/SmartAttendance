@@ -35,8 +35,8 @@ android {
         applicationId "com.college.smartattendance"
         minSdk 23
         targetSdk 34  // ✅ STABLE
-        versionCode 6          // 🔥 MUST INCREASE
-        versionName "2.2"    // For display only
+        versionCode 7          // 🔥 MUST INCREASE
+        versionName "2.2.1"    // For display only
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
