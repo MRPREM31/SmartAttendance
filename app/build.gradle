@@ -5,48 +5,39 @@ plugins {
 
 android {
 
-    android {
-
-        signingConfigs {
-            release {
-                storeFile file("keystore/smartattendance.jks")
-                storePassword "Quantumcoders@2025"
-                keyAlias "smartattendance"
-                keyPassword "Quantumcoders@2025"
-            }
-        }
-
-        buildTypes {
-            release {
-                signingConfig signingConfigs.release
-                minifyEnabled false
-                shrinkResources false
-                proguardFiles getDefaultProguardFile(
-                        'proguard-android-optimize.txt'
-                ), 'proguard-rules.pro'
-            }
-        }
-    }
-
     namespace "com.college.smartattendance"
-    compileSdk 34   // ✅ STABLE
+    compileSdk 34
 
     defaultConfig {
         applicationId "com.college.smartattendance"
-        minSdk 23
-        targetSdk 34  // ✅ STABLE
-        versionCode 8          // 🔥 MUST INCREASE
-        versionName "2.2.2"    // For display only
+        minSdk 23              // ✅ Fire Tablets compatible
+        targetSdk 34
+        versionCode 9          // ✅ Increased
+        versionName "2.2.3"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    signingConfigs {
+        release {
+            storeFile file("keystore/smartattendance.jks")
+            storePassword "Quantumcoders@2025"
+            keyAlias "smartattendance"
+            keyPassword "Quantumcoders@2025"
+        }
+    }
+
     buildTypes {
         release {
+            signingConfig signingConfigs.release
             minifyEnabled false
+            shrinkResources false
             proguardFiles getDefaultProguardFile(
                     "proguard-android-optimize.txt"
             ), "proguard-rules.pro"
+        }
+        debug {
+            minifyEnabled false
         }
     }
 
@@ -58,7 +49,7 @@ android {
 
 dependencies {
 
-    // 🔹 AndroidX Core (VERY IMPORTANT)
+    // 🔹 AndroidX Core
     implementation "androidx.core:core-ktx:1.13.1"
 
     implementation libs.appcompat
@@ -66,9 +57,8 @@ dependencies {
     implementation libs.activity
     implementation libs.constraintlayout
 
-    // 🔥 Firebase BOM
+    // 🔥 Firebase (Auth + Firestore)
     implementation platform("com.google.firebase:firebase-bom:33.1.2")
-
     implementation "com.google.firebase:firebase-auth"
     implementation "com.google.firebase:firebase-firestore"
 
@@ -78,6 +68,7 @@ dependencies {
     // 🔳 QR Scanner
     implementation "com.journeyapps:zxing-android-embedded:4.3.0"
 
+    // 🧪 Testing
     testImplementation libs.junit
     androidTestImplementation libs.ext.junit
     androidTestImplementation libs.espresso.core

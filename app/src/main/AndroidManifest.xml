@@ -8,14 +8,23 @@
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.INTERNET" />
 
-
-    <!-- ⚠️ Needed for PDF download (Android 10 and below) -->
+    <!-- ⚠️ Storage (Android 10 and below only) -->
     <uses-permission
         android:name="android.permission.WRITE_EXTERNAL_STORAGE"
         android:maxSdkVersion="28" />
 
+    <!-- ✅ REQUIRED FOR FIRE TABLETS -->
+    <uses-feature
+        android:name="android.hardware.touchscreen"
+        android:required="true" />
+
+    <!-- ❌ MUST BE OPTIONAL -->
     <uses-feature
         android:name="android.hardware.camera"
+        android:required="false" />
+
+    <uses-feature
+        android:name="android.hardware.location.gps"
         android:required="false" />
 
     <application
@@ -26,23 +35,15 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.SmartAttendance">
 
-        <!-- 📷 ZXING SCANNER -->
         <activity
             android:name=".CustomCaptureActivity"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.AppCompat.NoActionBar"
             android:exported="false" />
 
-        <!-- 👨‍🏫 TEACHER ATTENDANCE REPORT -->
-        <activity
-            android:name=".AttendanceReportActivity"
-            android:exported="false" />
+        <activity android:name=".AttendanceReportActivity" android:exported="false" />
+        <activity android:name=".HelpActivity" android:exported="false" />
 
-        <activity
-            android:name=".HelpActivity"
-            android:exported="false" />
-
-        <!-- 🚀 LAUNCHER -->
         <activity
             android:name=".WelcomeActivity"
             android:exported="true">
@@ -60,11 +61,7 @@
         <activity android:name=".AttendanceSuccessActivity" android:exported="false" />
         <activity android:name=".UserGuidelinesActivity" android:exported="false" />
         <activity android:name=".WebViewActivity" android:exported="false" />
-
-        <!-- 👨‍🎓 STUDENT ATTENDANCE REPORT (ADDED SAFELY) -->
-        <activity
-            android:name=".StudentAttendanceReportActivity"
-            android:exported="false" />
+        <activity android:name=".StudentAttendanceReportActivity" android:exported="false" />
 
     </application>
 </manifest>
