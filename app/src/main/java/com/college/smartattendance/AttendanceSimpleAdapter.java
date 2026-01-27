@@ -1,12 +1,16 @@
 package com.college.smartattendance;
 
+import android.app.AlertDialog;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.List;
 
@@ -32,7 +36,7 @@ public class AttendanceSimpleAdapter
 
         AttendanceModel model = list.get(position);
 
-        // ✅ STUDENT NAME (IMPORTANT FIX)
+        // ✅ STUDENT NAME
         String name = model.getStudentName();
         String studentId = model.getStudentId();
 
@@ -48,10 +52,40 @@ public class AttendanceSimpleAdapter
         // ✅ DEVICE
         h.txtDevice.setText("Device: " + model.getDeviceId());
 
-        // ✅ FORCE TEXT COLOR (SAFETY)
-        h.txtStudentId.setTextColor(0xFF000000); // BLACK
+        // ✅ COLORS
+        h.txtStudentId.setTextColor(0xFF000000);
         h.txtTime.setTextColor(0xFF333333);
         h.txtDevice.setTextColor(0xFF666666);
+
+        // 🔴 LONG PRESS TO DELETE (ANTI-PROXY)
+        h.itemView.setOnLongClickListener(v -> {
+
+            new AlertDialog.Builder(v.getContext())
+                    .setTitle("Remove Attendance")
+                    .setMessage("Delete attendance for:\n\n" +
+                            model.getStudentName())
+                    .setPositiveButton("Delete", (dialog, which) -> {
+
+                        FirebaseFirestore.getInstance()
+                                .collection("attendance_records")
+                                .document(model.getDocId()) // MUST exist
+                                .delete()
+                                .addOnSuccessListener(aVoid -> {
+
+                                    list.remove(position);
+                                    notifyItemRemoved(position);
+                                    notifyItemRangeChanged(position, list.size());
+
+                                    Toast.makeText(v.getContext(),
+                                            "Attendance deleted",
+                                            Toast.LENGTH_SHORT).show();
+                                });
+                    })
+                    .setNegativeButton("Cancel", null)
+                    .show();
+
+            return true;
+        });
     }
 
     @Override

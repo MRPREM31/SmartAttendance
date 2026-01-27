@@ -34,6 +34,7 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.appcompat.app.AlertDialog;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.*;
@@ -59,6 +60,7 @@ public class AttendanceReportActivity extends AppCompatActivity {
     EditText edtDate;
     Spinner spinnerSubject, spinnerTimeSlot;
     Button btnFetchAttendance, btnDownloadPdf;
+    Button btnAddStudent;
     RecyclerView recyclerAttendance;
 
     FirebaseFirestore db;
@@ -89,6 +91,8 @@ public class AttendanceReportActivity extends AppCompatActivity {
         spinnerTimeSlot = findViewById(R.id.spinnerTimeSlot);
         btnFetchAttendance = findViewById(R.id.btnFetchAttendance);
         btnDownloadPdf = findViewById(R.id.btnDownloadPdf);
+        btnAddStudent = findViewById(R.id.btnAddStudent);
+        btnAddStudent.setOnClickListener(v -> showAddStudentDialog());
         recyclerAttendance = findViewById(R.id.recyclerAttendance);
 
         recyclerAttendance.setLayoutManager(new LinearLayoutManager(this));
@@ -190,6 +194,7 @@ public class AttendanceReportActivity extends AppCompatActivity {
     }
 
     private void fetchAttendance() {
+
         attendanceList.clear();
         adapter.notifyDataSetChanged();
 
@@ -198,13 +203,94 @@ public class AttendanceReportActivity extends AppCompatActivity {
                 .whereEqualTo("subject", spinnerSubject.getSelectedItem().toString())
                 .get()
                 .addOnSuccessListener(qs -> {
-                    for (QueryDocumentSnapshot d : qs)
-                        attendanceList.add(d.toObject(AttendanceModel.class));
+
+                    for (QueryDocumentSnapshot d : qs) {
+
+                        AttendanceModel model = d.toObject(AttendanceModel.class);
+
+                        // 🔴 THIS LINE IS THE KEY
+                        model.setDocId(d.getId());
+
+                        attendanceList.add(model);
+                    }
 
                     txtTotal.setText("Total Present: " + attendanceList.size());
                     adapter.notifyDataSetChanged();
-                });
+                })
+                .addOnFailureListener(e ->
+                        Toast.makeText(this,
+                                "Failed to load attendance",
+                                Toast.LENGTH_SHORT).show());
     }
+
+    private void showAddStudentDialog() {
+
+        EditText edtStudentId = new EditText(this);
+        edtStudentId.setHint("Enter Student UID");
+
+        new AlertDialog.Builder(this)
+                .setTitle("Add Student Attendance")
+                .setView(edtStudentId)
+                .setPositiveButton("Add", (d, w) -> {
+
+                    String studentId = edtStudentId.getText().toString().trim();
+                    if (studentId.isEmpty()) return;
+
+                    addStudentAttendance(studentId);
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
+    private void addStudentAttendance(String studentUid) {
+
+        db.collection("users")   // 🔴 FIXED
+                .document(studentUid)
+                .get()
+                .addOnSuccessListener(doc -> {
+
+                    if (!doc.exists()) {
+                        Toast.makeText(this,
+                                "Student not found (Invalid UID)",
+                                Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+
+                    // 🔐 Extra safety: role check
+                    if (!"student".equals(doc.getString("role"))) {
+                        Toast.makeText(this,
+                                "This UID is not a student",
+                                Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+
+                    Map<String, Object> data = new HashMap<>();
+                    data.put("studentId", studentUid); // UID as ID
+                    data.put("studentName", doc.getString("name"));
+                    data.put("deviceId", doc.getString("deviceId"));
+                    data.put("time", new SimpleDateFormat(
+                            "HH:mm", Locale.getDefault()).format(new Date()));
+                    data.put("status", "PRESENT");
+                    data.put("date", convertDate(edtDate.getText().toString()));
+                    data.put("subject", spinnerSubject.getSelectedItem().toString());
+                    data.put("teacherId", auth.getUid());
+                    data.put("manual", true); // 🔍 audit flag
+
+                    db.collection("attendance_records")
+                            .add(data)
+                            .addOnSuccessListener(r -> {
+                                Toast.makeText(this,
+                                        "Student added manually",
+                                        Toast.LENGTH_SHORT).show();
+                                fetchAttendance();
+                            });
+                })
+                .addOnFailureListener(e ->
+                        Toast.makeText(this,
+                                "Failed to fetch student",
+                                Toast.LENGTH_SHORT).show());
+    }
+
 
     // ================= PDF GENERATION =================
     private void generatePdf() {

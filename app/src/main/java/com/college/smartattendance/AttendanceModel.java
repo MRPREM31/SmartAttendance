@@ -2,6 +2,8 @@ package com.college.smartattendance;
 
 public class AttendanceModel {
 
+    private String docId;
+
     private String studentId;
     private String studentName;
     private String time;
@@ -9,6 +11,9 @@ public class AttendanceModel {
     private String status;
 
     public AttendanceModel() {}
+
+    public String getDocId() { return docId; }
+    public void setDocId(String docId) { this.docId = docId; }
 
     public String getStudentId() {
         return studentId;
