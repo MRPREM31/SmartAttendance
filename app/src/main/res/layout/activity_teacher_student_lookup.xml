@@ -179,6 +179,14 @@
                     android:textSize="15sp"
                     android:textColor="#1B5E20" />   <!-- DARK GREEN -->
 
+                <TextView
+                    android:id="@+id/txtSelectedSubject"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Subject: --"
+                    android:textSize="14sp"
+                    android:textColor="#455A64" />
+
                 <!-- ⚫ LAST ATTENDANCE -->
                 <TextView
                     android:id="@+id/txtLastAttendance"

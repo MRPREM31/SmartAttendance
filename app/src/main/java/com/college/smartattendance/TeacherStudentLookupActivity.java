@@ -21,7 +21,7 @@ public class TeacherStudentLookupActivity extends AppCompatActivity {
     LinearLayout layoutResult;
     LinearLayout layoutAttendanceSummary;
     TextView txtTotalClasses, txtPresentCount, txtLastAttendance, txtAttendancePercentage;
-    TextView txtName, txtEmail, txtRole, txtUid, txtDeviceId, txtCreatedAt;
+    TextView txtName, txtEmail, txtRole, txtUid, txtDeviceId, txtCreatedAt, txtSelectedSubject;
     Button btnCopyStudentInfo;
     FirebaseFirestore db;
     Spinner spinnerSubjectFilter;
@@ -31,6 +31,8 @@ public class TeacherStudentLookupActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_teacher_student_lookup);
+
+        txtSelectedSubject = findViewById(R.id.txtSelectedSubject);
 
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -99,8 +101,28 @@ public class TeacherStudentLookupActivity extends AppCompatActivity {
                         }
 
                         Long createdAt = d.getLong("createdAt");
-                        if (createdAt != null && createdAt > latestTimestamp) {
-                            latestTimestamp = createdAt;
+
+                        if (createdAt != null) {
+                            if (createdAt > latestTimestamp) {
+                                latestTimestamp = createdAt;
+                            }
+                        } else {
+                            // 🔁 Fallback using date + time
+                            String dateStr = d.getString("date");
+                            String timeStr = d.getString("time");
+
+                            try {
+                                if (dateStr != null && timeStr != null) {
+                                    Date parsed = new SimpleDateFormat(
+                                            "yyyy-MM-dd HH:mm:ss",
+                                            Locale.getDefault()
+                                    ).parse(dateStr + " " + timeStr);
+
+                                    if (parsed != null && parsed.getTime() > latestTimestamp) {
+                                        latestTimestamp = parsed.getTime();
+                                    }
+                                }
+                            } catch (Exception ignored) {}
                         }
                     }
 
@@ -197,8 +219,7 @@ public class TeacherStudentLookupActivity extends AppCompatActivity {
                         txtAttendancePercentage.setText("Attendance: --%");
                     }
 
-                    txtLastAttendance.setText("Subject: " + subject);
-
+                    txtSelectedSubject.setText("Subject: " + subject);
 
                     layoutAttendanceSummary.setVisibility(View.VISIBLE);
                 });
@@ -258,6 +279,19 @@ public class TeacherStudentLookupActivity extends AppCompatActivity {
 
                 selectedStudentId = doc.getString("uid"); // ✅ ADD THIS
 
+                Long createdAt = doc.getLong("createdAt");
+
+                if (createdAt != null) {
+                    String formatted = new SimpleDateFormat(
+                            "dd MMM yyyy | HH:mm:ss",
+                            Locale.getDefault()
+                    ).format(new Date(createdAt));
+
+                    txtCreatedAt.setText("Created At: " + formatted);
+                } else {
+                    txtCreatedAt.setText("Created At: --");
+                }
+
                 txtName.setText("Name: " + name);
                 txtEmail.setText("Email: " + email);
                 txtRole.setText("Role: " + doc.getString("role"));
@@ -268,6 +302,9 @@ public class TeacherStudentLookupActivity extends AppCompatActivity {
 
                 fetchAttendanceSummary(selectedStudentId); // overall
                 loadTeacherSubjects();                    // load spinner
+
+                // ✅ RESET SUBJECT LABEL HERE
+                txtSelectedSubject.setText("Subject: --");
 
                 return;
             }
