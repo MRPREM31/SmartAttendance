@@ -61,7 +61,7 @@ public class StudentDashboardActivity extends AppCompatActivity {
     Button btnRefreshLocation;
 
     // Distance config
-    private static final float TEACHER_RADIUS = 100;
+    private static final float TEACHER_RADIUS = 300;
     private static final long QR_VALIDITY_MS = 10_000;
 
     private static final String GOOGLE_SCRIPT_URL =

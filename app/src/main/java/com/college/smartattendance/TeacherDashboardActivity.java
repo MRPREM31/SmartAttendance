@@ -480,7 +480,7 @@ public class TeacherDashboardActivity extends AppCompatActivity {
     private void createSession(FirebaseUser user, String teacherName) {
 
         currentSessionId = UUID.randomUUID().toString();
-        sessionEndTime = System.currentTimeMillis() + 60000;
+        sessionEndTime = System.currentTimeMillis() + (5 * 60 * 1000); // 5 minutes
 
         String date = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
         String startTime = new SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(new Date());
@@ -549,7 +549,7 @@ public class TeacherDashboardActivity extends AppCompatActivity {
 
     // ================= SESSION TIMER =================
     private void startSessionCountdown() {
-        new CountDownTimer(60000, 1000) {
+        new CountDownTimer(5 * 60 * 1000, 1000) {
             public void onTick(long ms) {
                 txtCountdown.setText("Session ends in " + (ms / 1000) + " sec");
             }
