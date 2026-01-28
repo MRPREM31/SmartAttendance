@@ -177,8 +177,18 @@ public class TeacherDashboardActivity extends AppCompatActivity {
                 uri -> {
                     if (uri != null) {
                         try {
+                            // 🔐 Persist permission
+                            getContentResolver().takePersistableUriPermission(
+                                    uri,
+                                    Intent.FLAG_GRANT_READ_URI_PERMISSION
+                            );
+
+                            // 💾 Save URI
                             saveImageUri(uri);
+
+                            // 🖼️ Show image
                             imgProfile.setImageURI(uri);
+
                         } catch (Exception e) {
                             imgProfile.setImageResource(R.drawable.teacher_logo);
                         }
@@ -436,6 +446,7 @@ public class TeacherDashboardActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         updatePermissionStatus();
+        loadSavedProfileImage(); // 🔥 THIS WAS MISSING
     }
 
     // ================= LOCAL IMAGE STORAGE =================
@@ -454,10 +465,12 @@ public class TeacherDashboardActivity extends AppCompatActivity {
                 Uri uri = Uri.parse(uriStr);
                 imgProfile.setImageURI(uri);
             } catch (Exception e) {
-                // corrupted or revoked URI
+                // If URI is invalid or permission lost
                 sp.edit().remove("profile_image_uri").apply();
                 imgProfile.setImageResource(R.drawable.teacher_logo);
             }
+        } else {
+            imgProfile.setImageResource(R.drawable.teacher_logo);
         }
     }
 
