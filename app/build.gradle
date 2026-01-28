@@ -12,8 +12,8 @@ android {
         applicationId "com.college.smartattendance"
         minSdk 23              // ✅ Fire Tablets compatible
         targetSdk 34
-        versionCode 9          // ✅ Increased
-        versionName "2.2.3"
+        versionCode 10          // ✅ Increased
+        versionName "3.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
