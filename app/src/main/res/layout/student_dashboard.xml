@@ -55,7 +55,7 @@
                     android:id="@+id/imgStudentProfile"
                     android:layout_width="110dp"
                     android:layout_height="110dp"
-                    android:src="@drawable/student_logo"
+                    android:src="@drawable/student_placeholder"
                     android:scaleType="centerCrop"
                     android:background="@drawable/circle_bg"
                     android:clipToOutline="true"

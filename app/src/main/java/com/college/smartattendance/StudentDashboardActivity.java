@@ -45,6 +45,9 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.List;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
 
 public class StudentDashboardActivity extends AppCompatActivity {
 
@@ -96,6 +99,7 @@ public class StudentDashboardActivity extends AppCompatActivity {
         txtPermInternet = findViewById(R.id.txtPermInternet);
 
         imgStudentProfile = findViewById(R.id.imgStudentProfile);
+        imgStudentProfile.setImageResource(R.drawable.student_placeholder);
         btnUploadStudentImage = findViewById(R.id.btnUploadStudentImage);
         btnRefreshLocation = findViewById(R.id.btnRefreshLocation);
 
@@ -579,15 +583,44 @@ public class StudentDashboardActivity extends AppCompatActivity {
     }
 
     // ================= STUDENT IMAGE STORAGE =================
+    // ================= STUDENT IMAGE STORAGE =================
     private void saveStudentImageUri(Uri uri) {
-        SharedPreferences sp = getSharedPreferences("student_prefs", MODE_PRIVATE);
-        sp.edit().putString("profile_image_uri", uri.toString()).apply();
+        try {
+            InputStream in = getContentResolver().openInputStream(uri);
+            if (in == null) return;
+
+            File file = new File(getFilesDir(), "student_profile.jpg");
+            FileOutputStream out = new FileOutputStream(file);
+
+            byte[] buffer = new byte[1024];
+            int len;
+            while ((len = in.read(buffer)) > 0) {
+                out.write(buffer, 0, len);
+            }
+
+            in.close();
+            out.close();
+
+            SharedPreferences sp =
+                    getSharedPreferences("student_prefs", MODE_PRIVATE);
+            sp.edit().putString("profile_image_path", file.getAbsolutePath()).apply();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private void loadStudentProfileImage() {
-        SharedPreferences sp = getSharedPreferences("student_prefs", MODE_PRIVATE);
-        String uriStr = sp.getString("profile_image_uri", null);
-        if (uriStr != null) imgStudentProfile.setImageURI(Uri.parse(uriStr));
+        SharedPreferences sp =
+                getSharedPreferences("student_prefs", MODE_PRIVATE);
+        String path = sp.getString("profile_image_path", null);
+
+        if (path != null) {
+            File file = new File(path);
+            if (file.exists()) {
+                imgStudentProfile.setImageURI(Uri.fromFile(file));
+            }
+        }
     }
 
     // ================= MENU =================
