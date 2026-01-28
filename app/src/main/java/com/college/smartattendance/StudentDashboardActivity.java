@@ -16,6 +16,8 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.location.Address;
+import android.location.Geocoder;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -42,6 +44,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.List;
 
 public class StudentDashboardActivity extends AppCompatActivity {
 
@@ -202,7 +205,10 @@ public class StudentDashboardActivity extends AppCompatActivity {
         if (ActivityCompat.checkSelfPermission(
                 this, Manifest.permission.ACCESS_FINE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED) {
-            Toast.makeText(this, "Location permission required", Toast.LENGTH_SHORT).show();
+
+            Toast.makeText(this,
+                    "Location permission required",
+                    Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -221,12 +227,41 @@ public class StudentDashboardActivity extends AppCompatActivity {
             double lat = location.getLatitude();
             double lng = location.getLongitude();
 
+            String placeText = "Fetching place name...";
+
+            try {
+                Geocoder geocoder = new Geocoder(this, Locale.getDefault());
+                List<Address> addresses =
+                        geocoder.getFromLocation(lat, lng, 1);
+
+                if (addresses != null && !addresses.isEmpty()) {
+                    Address a = addresses.get(0);
+
+                    String area = a.getSubLocality();
+                    String city = a.getLocality();
+                    String state = a.getAdminArea();
+
+                    placeText =
+                            (area != null ? area + ", " : "") +
+                                    (city != null ? city + ", " : "") +
+                                    (state != null ? state : "");
+                } else {
+                    placeText = "Place name not available";
+                }
+
+            } catch (Exception e) {
+                placeText = "Unable to fetch place name";
+            }
+
             txtLatLng.setText(
-                    "Lat: " + lat + "\nLng: " + lng
+                    "📍 Location\n" +
+                            "Lat: " + lat + "\n" +
+                            "Lng: " + lng + "\n" +
+                            placeText
             );
 
             Toast.makeText(this,
-                    "Location refreshed",
+                    "Live location updated",
                     Toast.LENGTH_SHORT).show();
         });
     }
