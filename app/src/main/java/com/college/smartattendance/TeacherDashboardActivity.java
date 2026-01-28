@@ -60,7 +60,7 @@ import java.util.UUID;
 public class TeacherDashboardActivity extends AppCompatActivity {
 
     Spinner spinnerSubject, spinnerTime;
-    Button btnGenerateQR, btnViewAttendance, btnEditSubjects, btnUploadImage, btnRefreshTeacherLocation;
+    Button btnGenerateQR, btnViewAttendance, btnEditSubjects, btnUploadImage, btnRefreshTeacherLocation, btnCloseSession;
     ImageView imgQR, imgProfile;
 
     TextView txtCountdown, txtDateTime, txtGreeting;
@@ -106,6 +106,14 @@ public class TeacherDashboardActivity extends AppCompatActivity {
         btnViewAttendance = findViewById(R.id.btnViewAttendance);
         btnEditSubjects = findViewById(R.id.btnEditSubjects);
         btnUploadImage = findViewById(R.id.btnUploadImage);
+        btnCloseSession = findViewById(R.id.btnCloseSession);
+
+        btnCloseSession.setOnClickListener(v -> {
+            if (currentSessionId != null && !currentSessionId.isEmpty()) {
+                confirmCloseSession();
+            }
+        });
+
         imgQR = findViewById(R.id.imgQR);
         imgQR.setOnLongClickListener(v -> {
 
@@ -513,6 +521,7 @@ public class TeacherDashboardActivity extends AppCompatActivity {
         txtQRId.setText("QR ID: " + currentSessionId.substring(0, 8));
 
         txtCountdown.setVisibility(TextView.VISIBLE);
+        btnCloseSession.setVisibility(View.VISIBLE);
         btnGenerateQR.setEnabled(false);
 
         startSessionCountdown();
@@ -547,15 +556,36 @@ public class TeacherDashboardActivity extends AppCompatActivity {
         });
     }
 
+    private void confirmCloseSession() {
+        new AlertDialog.Builder(this)
+                .setTitle("Close Session?")
+                .setMessage("This will stop QR scanning immediately and mark attendance.")
+                .setPositiveButton("Yes, Close", (d, w) -> endSession())
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
     // ================= SESSION TIMER =================
+    private CountDownTimer sessionTimer;
     private void startSessionCountdown() {
-        new CountDownTimer(5 * 60 * 1000, 1000) {
+
+        // 🔁 Cancel previous timer if any
+        if (sessionTimer != null) {
+            sessionTimer.cancel();
+        }
+
+        sessionTimer = new CountDownTimer(5 * 60 * 1000, 1000) {
+
+            @Override
             public void onTick(long ms) {
                 txtCountdown.setText("Session ends in " + (ms / 1000) + " sec");
             }
+
+            @Override
             public void onFinish() {
                 endSession();
             }
+
         }.start();
     }
 
@@ -581,6 +611,11 @@ public class TeacherDashboardActivity extends AppCompatActivity {
     // ================= END SESSION =================
     private void endSession() {
 
+        // ✅ Safety check (very important)
+        if (currentSessionId == null || currentSessionId.isEmpty()) {
+            return;
+        }
+
         // 🔒 CLOSE FULLSCREEN QR IF OPEN
         if (fullQrDialog != null && fullQrDialog.isShowing()) {
             fullQrDialog.dismiss();
@@ -589,11 +624,14 @@ public class TeacherDashboardActivity extends AppCompatActivity {
             fullQrTimer.cancel();
         }
 
+        // 🔒 STOP QR GENERATION
         qrHandler.removeCallbacksAndMessages(null);
 
+        // 🕒 Time & Date
         String endTime = new SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(new Date());
         String date = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
 
+        // 📊 COUNT TOTAL PRESENT
         db.collection("attendance_records")
                 .whereEqualTo("sessionId", currentSessionId)
                 .get()
@@ -601,6 +639,7 @@ public class TeacherDashboardActivity extends AppCompatActivity {
 
                     int total = qs.size();
 
+                    // 🧾 UPDATE SESSION DOCUMENT (NO FIELD REMOVED)
                     Map<String, Object> update = new HashMap<>();
                     update.put("sessionId", currentSessionId);
                     update.put("status", "COMPLETED");
@@ -610,18 +649,35 @@ public class TeacherDashboardActivity extends AppCompatActivity {
                     update.put("date", date);
                     update.put("timeSlot", spinnerTime.getSelectedItem().toString());
                     update.put("expiresAt", System.currentTimeMillis());
-                    update.put("teacherName", txtGreeting.getText().toString().replace("Hi ", "").replace(" 👋",""));
+                    update.put(
+                            "teacherName",
+                            txtGreeting.getText().toString()
+                                    .replace("Hi ", "")
+                                    .replace(" 👋", "")
+                    );
                     update.put("subject", spinnerSubject.getSelectedItem().toString());
 
                     db.collection("attendance_sessions")
                             .document(currentSessionId)
                             .update(update);
 
+                    // 📤 SEND TO GOOGLE SHEET
                     sendToGoogleSheet("attendance_sessions", update);
 
+                    // 🛑 STOP SESSION TIMER
+                    if (sessionTimer != null) {
+                        sessionTimer.cancel();
+                        sessionTimer = null;
+                    }
+
+                    // 🧹 UI RESET (IMPORTANT)
                     txtCountdown.setText("Session Completed");
                     btnGenerateQR.setEnabled(true);
                     imgQR.setImageDrawable(null);
+
+                    // 🔴 RESET SESSION STATE
+                    currentSessionId = "";
+                    sessionEndTime = 0;
                 });
     }
 
@@ -647,6 +703,16 @@ public class TeacherDashboardActivity extends AppCompatActivity {
                 conn.disconnect();
             } catch (Exception ignored) {}
         }).start();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+
+        // 🔴 Auto close session if app is closed
+        if (currentSessionId != null && !currentSessionId.isEmpty()) {
+            endSession();
+        }
     }
 
     // ================= MENU =================

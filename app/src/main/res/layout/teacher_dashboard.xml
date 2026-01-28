@@ -270,6 +270,18 @@
                 android:layout_gravity="center"
                 android:layout_marginBottom="24dp" />
 
+            <Button
+                android:id="@+id/btnCloseSession"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:text="Close Session Now"
+                android:textAllCaps="false"
+                android:textStyle="bold"
+                android:textColor="#FFFFFF"
+                android:backgroundTint="#D32F2F"
+                android:layout_marginBottom="16dp"
+                android:visibility="gone"/>
+
             <!-- 📊 VIEW ATTENDANCE -->
             <Button
                 android:id="@+id/btnViewAttendance"
