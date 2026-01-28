@@ -31,14 +31,14 @@
                 android:textStyle="bold"
                 android:textColor="#37474F"
                 android:layout_gravity="center"
-                android:layout_marginBottom="16dp" />
+                android:layout_marginBottom="20dp" />
 
-            <!-- 👨‍🏫 PROFILE IMAGE -->
+            <!-- 👨‍🏫 PROFILE -->
             <androidx.cardview.widget.CardView
-                android:layout_width="110dp"
-                android:layout_height="110dp"
+                android:layout_width="120dp"
+                android:layout_height="120dp"
                 android:layout_gravity="center"
-                app:cardCornerRadius="55dp"
+                app:cardCornerRadius="60dp"
                 app:cardElevation="8dp"
                 android:layout_marginBottom="12dp">
 
@@ -63,29 +63,94 @@
                 android:layout_gravity="center"
                 android:layout_marginBottom="12dp" />
 
-            <!-- 🔘 ACTION BUTTONS -->
+            <!-- 📤 UPLOAD IMAGE -->
+            <Button
+                android:id="@+id/btnUploadImage"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Upload Image"
+                android:textAllCaps="false"
+                android:layout_gravity="center"
+                android:layout_marginBottom="24dp" />
+
+            <!-- 🔐 PERMISSIONS CARD -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center"
+                android:orientation="vertical"
+                android:padding="16dp"
+                android:background="@drawable/bg_distance_card"
                 android:layout_marginBottom="20dp">
 
-                <Button
-                    android:id="@+id/btnUploadImage"
+                <TextView
+                    android:id="@+id/txtPermLocation"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Upload Image"
-                    android:textAllCaps="false"
-                    android:layout_marginEnd="12dp" />
+                    android:text="📍 Location (GPS): checking..."
+                    android:textSize="14sp" />
+
+                <TextView
+                    android:id="@+id/txtPermCamera"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="📷 Camera (QR Scan): checking..."
+                    android:textSize="14sp"
+                    android:layout_marginTop="6dp" />
+
+                <TextView
+                    android:id="@+id/txtPermInternet"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="🌐 Internet (Online Sync): checking..."
+                    android:textSize="14sp"
+                    android:layout_marginTop="6dp" />
+            </LinearLayout>
+
+            <!-- 📍 LIVE LOCATION CARD -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp"
+                android:background="@drawable/bg_distance_card"
+                android:layout_marginBottom="24dp">
+
+                <TextView
+                    android:id="@+id/txtTeacherLatLng"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Lat: -- , Lng: --"
+                    android:textSize="13sp"
+                    android:textColor="#455A64" />
+
+                <TextView
+                    android:id="@+id/txtTeacherPlace"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Place: --"
+                    android:textSize="13sp"
+                    android:textColor="#455A64"
+                    android:layout_marginTop="4dp" />
 
                 <Button
-                    android:id="@+id/btnEditSubjects"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Edit Subjects"
-                    android:textAllCaps="false" />
+                    android:id="@+id/btnRefreshTeacherLocation"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:text="📍 Refresh Location"
+                    android:textAllCaps="false"
+                    android:backgroundTint="#FF9800"
+                    android:textColor="@android:color/white"
+                    android:layout_marginTop="12dp" />
             </LinearLayout>
+
+            <!-- ✏️ EDIT SUBJECTS -->
+            <Button
+                android:id="@+id/btnEditSubjects"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Edit Subjects"
+                android:textAllCaps="false"
+                android:layout_marginBottom="16dp" />
 
             <!-- 📘 SUBJECT -->
             <TextView
@@ -121,18 +186,6 @@
                 android:backgroundTint="#3F51B5"
                 android:layout_marginBottom="20dp" />
 
-            <!-- ⏳ COUNTDOWN -->
-            <TextView
-                android:id="@+id/txtCountdown"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Session ends in 60 sec"
-                android:textColor="#D32F2F"
-                android:textStyle="bold"
-                android:layout_gravity="center"
-                android:visibility="gone"
-                android:layout_marginBottom="16dp" />
-
             <!-- 🔳 GENERATE QR -->
             <Button
                 android:id="@+id/btnGenerateQR"
@@ -144,6 +197,18 @@
                 android:textColor="#FFFFFF"
                 android:backgroundTint="#3F51B5"
                 android:layout_marginBottom="20dp" />
+
+            <!-- ⏳ COUNTDOWN -->
+            <TextView
+                android:id="@+id/txtCountdown"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Session ends in 60 sec"
+                android:textColor="#D32F2F"
+                android:textStyle="bold"
+                android:layout_gravity="center"
+                android:visibility="gone"
+                android:layout_marginBottom="16dp" />
 
             <!-- 📷 QR IMAGE -->
             <androidx.cardview.widget.CardView

@@ -7,6 +7,8 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.location.Location;
+import android.location.Geocoder;
+import android.location.Address;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.CountDownTimer;
@@ -21,6 +23,7 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -56,11 +59,13 @@ import java.util.UUID;
 public class TeacherDashboardActivity extends AppCompatActivity {
 
     Spinner spinnerSubject, spinnerTime;
-    Button btnGenerateQR, btnViewAttendance, btnEditSubjects, btnUploadImage;
+    Button btnGenerateQR, btnViewAttendance, btnEditSubjects, btnUploadImage, btnRefreshTeacherLocation;
     ImageView imgQR, imgProfile;
 
     TextView txtCountdown, txtDateTime, txtGreeting;
     TextView txtQRSubject, txtQRTime, txtQRId;
+    TextView txtPermCamera, txtPermLocation, txtPermInternet;
+    TextView txtTeacherLatLng, txtTeacherPlace;
 
     FirebaseAuth auth;
     FirebaseFirestore db;
@@ -106,10 +111,17 @@ public class TeacherDashboardActivity extends AppCompatActivity {
         txtCountdown = findViewById(R.id.txtCountdown);
         txtDateTime = findViewById(R.id.txtDateTime);
         txtGreeting = findViewById(R.id.txtGreeting);
+        txtTeacherLatLng = findViewById(R.id.txtTeacherLatLng);
+        txtTeacherPlace = findViewById(R.id.txtTeacherPlace);
 
         txtQRSubject = findViewById(R.id.txtQRSubject);
         txtQRTime = findViewById(R.id.txtQRTime);
         txtQRId = findViewById(R.id.txtQRId);
+        txtPermCamera = findViewById(R.id.txtPermCamera);
+        txtPermLocation = findViewById(R.id.txtPermLocation);
+        txtPermInternet = findViewById(R.id.txtPermInternet);
+        txtPermLocation.setOnClickListener(v -> openAppSettings());
+        txtPermCamera.setOnClickListener(v -> openAppSettings());
 
         startDateTimeUpdater();
         loadTeacherGreeting();
@@ -131,6 +143,7 @@ public class TeacherDashboardActivity extends AppCompatActivity {
 
         btnEditSubjects.setOnClickListener(v -> showSubjectDialog(true));
         btnUploadImage.setOnClickListener(v -> imagePickerLauncher.launch("image/*"));
+        btnRefreshTeacherLocation = findViewById(R.id.btnRefreshTeacherLocation);
 
         imagePickerLauncher = registerForActivityResult(
                 new ActivityResultContracts.GetContent(),
@@ -148,6 +161,108 @@ public class TeacherDashboardActivity extends AppCompatActivity {
 
         checkOrCreateTeacherProfile();
         startTeacherGpsUpdates();
+        updatePermissionStatus();
+
+        btnRefreshTeacherLocation.setOnClickListener(v -> refreshTeacherLocation());
+    }
+
+    private void updatePermissionStatus() {
+
+        // CAMERA
+        int camPerm = ActivityCompat.checkSelfPermission(
+                this, Manifest.permission.CAMERA);
+        setPermText(txtPermCamera, camPerm);
+
+        // LOCATION
+        int locPerm = ActivityCompat.checkSelfPermission(
+                this, Manifest.permission.ACCESS_FINE_LOCATION);
+        setPermText(txtPermLocation, locPerm);
+
+        // INTERNET (always granted)
+        setPermText(txtPermInternet, PackageManager.PERMISSION_GRANTED);
+    }
+
+    private void setPermText(TextView tv, int status) {
+
+        String label = tv.getText().toString().split(":")[0];
+
+        if (status == PackageManager.PERMISSION_GRANTED) {
+            tv.setText(label + ": ✅ Granted");
+            tv.setTextColor(0xFF2E7D32); // Green
+        } else {
+            tv.setText(label + ": ❌ Not Granted");
+            tv.setTextColor(0xFFC62828); // Red
+        }
+    }
+
+    private void openAppSettings() {
+        Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+        intent.setData(Uri.fromParts("package", getPackageName(), null));
+        startActivity(intent);
+    }
+
+    private void refreshTeacherLocation() {
+
+        if (ActivityCompat.checkSelfPermission(
+                this, Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
+
+            Toast.makeText(this, "Location permission required", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        locationClient.getCurrentLocation(
+                com.google.android.gms.location.Priority.PRIORITY_HIGH_ACCURACY,
+                null
+        ).addOnSuccessListener(location -> {
+
+            if (location == null) {
+                Toast.makeText(this, "Unable to fetch location", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            double lat = location.getLatitude();
+            double lng = location.getLongitude();
+
+            txtTeacherLatLng.setText("Lat: " + lat + " , Lng: " + lng);
+
+            // 🌍 Get place name
+            try {
+                Geocoder geocoder = new Geocoder(this, Locale.getDefault());
+                List<Address> list = geocoder.getFromLocation(lat, lng, 1);
+
+                if (list != null && !list.isEmpty()) {
+
+                    Address a = list.get(0);
+
+                    String area = a.getSubLocality();
+                    String street = a.getThoroughfare();
+                    String city = a.getLocality();
+                    String state = a.getAdminArea();
+
+                    String placeText =
+                            (area != null ? area + ", " : "") +
+                                    (street != null ? street + ", " : "") +
+                                    (city != null ? city + ", " : "") +
+                                    (state != null ? state : "");
+
+                    txtTeacherPlace.setText("Place: " + placeText);
+                } else {
+                    txtTeacherPlace.setText("Place: not available");
+                }
+
+            } catch (Exception e) {
+                txtTeacherPlace.setText("Place: unavailable");
+            }
+
+            Toast.makeText(this, "Location refreshed", Toast.LENGTH_SHORT).show();
+        });
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        updatePermissionStatus();
     }
 
     // ================= LOCAL IMAGE STORAGE =================
