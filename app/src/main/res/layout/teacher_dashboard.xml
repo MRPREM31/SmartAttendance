@@ -270,6 +270,18 @@
                 android:layout_gravity="center"
                 android:layout_marginBottom="24dp" />
 
+            <TextView
+                android:id="@+id/txtLivePresentCount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Present Students: 0"
+                android:textStyle="bold"
+                android:textSize="16sp"
+                android:textColor="#2E7D32"
+                android:layout_gravity="center"
+                android:layout_marginBottom="12dp"
+                android:visibility="gone"/>
+
             <Button
                 android:id="@+id/btnCloseSession"
                 android:layout_width="match_parent"

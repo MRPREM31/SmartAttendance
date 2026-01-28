@@ -66,7 +66,7 @@ public class TeacherDashboardActivity extends AppCompatActivity {
     TextView txtCountdown, txtDateTime, txtGreeting;
     TextView txtQRSubject, txtQRTime, txtQRId;
     TextView txtPermCamera, txtPermLocation, txtPermInternet;
-    TextView txtTeacherLatLng, txtTeacherPlace;
+    TextView txtTeacherLatLng, txtTeacherPlace, txtLivePresentCount;
 
     FirebaseAuth auth;
     FirebaseFirestore db;
@@ -78,6 +78,8 @@ public class TeacherDashboardActivity extends AppCompatActivity {
 
     Handler gpsHandler = new Handler();
     Runnable gpsRunnable;
+    Handler presentCountHandler = new Handler();
+    Runnable presentCountRunnable;
 
     private static final String GOOGLE_SCRIPT_URL =
             "https://script.google.com/macros/s/AKfycbxarlUMGk9HjBb3F4I3RllhYGVJblff7qvQgdi-g0Ey9xHA1bLkHh9jKAibItThop6G/exec";
@@ -141,6 +143,7 @@ public class TeacherDashboardActivity extends AppCompatActivity {
         txtPermInternet = findViewById(R.id.txtPermInternet);
         txtPermLocation.setOnClickListener(v -> openAppSettings());
         txtPermCamera.setOnClickListener(v -> openAppSettings());
+        txtLivePresentCount = findViewById(R.id.txtLivePresentCount);
 
         startDateTimeUpdater();
         loadTeacherGreeting();
@@ -489,6 +492,7 @@ public class TeacherDashboardActivity extends AppCompatActivity {
 
         currentSessionId = UUID.randomUUID().toString();
         sessionEndTime = System.currentTimeMillis() + (5 * 60 * 1000); // 5 minutes
+        txtLivePresentCount.setText("Present Students: 0");
 
         String date = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
         String startTime = new SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(new Date());
@@ -522,6 +526,8 @@ public class TeacherDashboardActivity extends AppCompatActivity {
 
         txtCountdown.setVisibility(TextView.VISIBLE);
         btnCloseSession.setVisibility(View.VISIBLE);
+        txtLivePresentCount.setVisibility(View.VISIBLE);
+        startLivePresentCount();
         btnGenerateQR.setEnabled(false);
 
         startSessionCountdown();
@@ -555,6 +561,39 @@ public class TeacherDashboardActivity extends AppCompatActivity {
             sendToGoogleSheet("teacher_live_location", loc);
         });
     }
+
+    private void startLivePresentCount() {
+
+        // 🔁 Stop old runnable if any
+        if (presentCountRunnable != null) {
+            presentCountHandler.removeCallbacks(presentCountRunnable);
+        }
+
+        presentCountRunnable = new Runnable() {
+            @Override
+            public void run() {
+
+                if (currentSessionId == null || currentSessionId.isEmpty()) {
+                    presentCountHandler.postDelayed(this, 3000);
+                    return;
+                }
+
+                db.collection("attendance_records")
+                        .whereEqualTo("sessionId", currentSessionId)
+                        .get()
+                        .addOnSuccessListener(qs -> {
+                            int count = qs.size();
+                            txtLivePresentCount.setText("Present Students: " + count);
+                        });
+
+                // 🔁 Refresh every 3 seconds
+                presentCountHandler.postDelayed(this, 3000);
+            }
+        };
+
+        presentCountHandler.post(presentCountRunnable);
+    }
+
 
     private void confirmCloseSession() {
         new AlertDialog.Builder(this)
@@ -623,6 +662,14 @@ public class TeacherDashboardActivity extends AppCompatActivity {
         if (fullQrTimer != null) {
             fullQrTimer.cancel();
         }
+        if (presentCountRunnable != null) {
+            presentCountHandler.removeCallbacks(presentCountRunnable);
+            presentCountRunnable = null;
+        }
+
+        txtLivePresentCount.setVisibility(View.GONE);
+        txtCountdown.setVisibility(View.VISIBLE);
+        btnCloseSession.setVisibility(View.GONE);
 
         // 🔒 STOP QR GENERATION
         qrHandler.removeCallbacksAndMessages(null);
@@ -709,7 +756,6 @@ public class TeacherDashboardActivity extends AppCompatActivity {
     protected void onStop() {
         super.onStop();
 
-        // 🔴 Auto close session if app is closed
         if (currentSessionId != null && !currentSessionId.isEmpty()) {
             endSession();
         }
