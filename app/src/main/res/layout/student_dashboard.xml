@@ -70,15 +70,60 @@
             </LinearLayout>
 
             <!-- TITLE -->
+            <LinearLayout
+                android:orientation="vertical"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_distance_card"
+                android:padding="16dp"
+                android:layout_marginBottom="20dp">
+
+                <TextView
+                    android:id="@+id/txtPermCamera"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Camera Permission: checking..."
+                    android:textSize="14sp"
+                    android:textColor="#37474F"/>
+
+                <TextView
+                    android:id="@+id/txtPermLocation"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Location Permission: checking..."
+                    android:textSize="14sp"
+                    android:textColor="#37474F"
+                    android:layout_marginTop="6dp"/>
+
+                <TextView
+                    android:id="@+id/txtPermInternet"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Internet Permission: checking..."
+                    android:textSize="14sp"
+                    android:textColor="#37474F"
+                    android:layout_marginTop="6dp"/>
+
+            </LinearLayout>
+
             <TextView
+                android:id="@+id/txtLatLng"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Student Dashboard"
-                android:textSize="22sp"
-                android:textStyle="bold"
-                android:textColor="#1A237E"
-                android:layout_gravity="center"
-                android:layout_marginBottom="24dp"/>
+                android:text="Lat: -- , Lng: --"
+                android:textSize="13sp"
+                android:textColor="#455A64"
+                android:layout_marginBottom="8dp"/>
+
+            <Button
+                android:id="@+id/btnRefreshLocation"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:text="📍 Refresh Location"
+                android:textAllCaps="false"
+                android:backgroundTint="#FF9800"
+                android:textColor="@android:color/white"
+                android:layout_marginBottom="16dp"/>
 
             <!-- SCAN BUTTON -->
             <Button

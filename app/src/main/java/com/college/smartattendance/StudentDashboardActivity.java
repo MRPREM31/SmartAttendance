@@ -49,9 +49,13 @@ public class StudentDashboardActivity extends AppCompatActivity {
     private FirebaseAuth auth;
     private FirebaseFirestore db;
 
-    TextView txtWelcome, txtDateTime, txtDistance;
+    TextView txtWelcome, txtDateTime, txtLatLng, txtDistance;
+
+    TextView txtPermCamera, txtPermLocation, txtPermInternet;
     ImageView imgStudentProfile;
     Button btnUploadStudentImage;
+
+    Button btnRefreshLocation;
 
     // Distance config
     private static final float TEACHER_RADIUS = 100;
@@ -83,9 +87,44 @@ public class StudentDashboardActivity extends AppCompatActivity {
         txtWelcome = findViewById(R.id.txtWelcome);
         txtDateTime = findViewById(R.id.txtDateTime);
         txtDistance = findViewById(R.id.txtDistance);
+        txtLatLng = findViewById(R.id.txtLatLng);
+        txtPermCamera = findViewById(R.id.txtPermCamera);
+        txtPermLocation = findViewById(R.id.txtPermLocation);
+        txtPermInternet = findViewById(R.id.txtPermInternet);
 
         imgStudentProfile = findViewById(R.id.imgStudentProfile);
         btnUploadStudentImage = findViewById(R.id.btnUploadStudentImage);
+        btnRefreshLocation = findViewById(R.id.btnRefreshLocation);
+
+        updatePermissionStatus();
+
+        // 🔴 Tap ❌ Camera → open App Settings
+        txtPermCamera.setOnClickListener(v -> {
+            if (ActivityCompat.checkSelfPermission(
+                    this, Manifest.permission.CAMERA)
+                    != PackageManager.PERMISSION_GRANTED) {
+
+                openAppSettings();
+            }
+        });
+
+        // 🔴 Tap ❌ Location → open Location Settings
+        txtPermLocation.setOnClickListener(v -> {
+            if (ActivityCompat.checkSelfPermission(
+                    this, Manifest.permission.ACCESS_FINE_LOCATION)
+                    != PackageManager.PERMISSION_GRANTED) {
+
+                startActivity(new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS));
+            }
+        });
+
+        // 🔴 Internet (info only)
+        txtPermInternet.setOnClickListener(v ->
+                Toast.makeText(this,
+                        "Internet permission is always enabled",
+                        Toast.LENGTH_SHORT).show()
+        );
+
 
         Button btnScanQR = findViewById(R.id.btnScanQR);
         Button btnViewReport = findViewById(R.id.btnViewReport);
@@ -121,6 +160,13 @@ public class StudentDashboardActivity extends AppCompatActivity {
 
         btnUploadStudentImage.setOnClickListener(v ->
                 studentImagePickerLauncher.launch("image/*"));
+        btnRefreshLocation.setOnClickListener(v -> refreshLiveLocation());
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        updatePermissionStatus();
     }
 
     // ================= LOAD STUDENT NAME =================
@@ -149,6 +195,77 @@ public class StudentDashboardActivity extends AppCompatActivity {
                 handler.postDelayed(this, 1000);
             }
         });
+    }
+
+    private void refreshLiveLocation() {
+
+        if (ActivityCompat.checkSelfPermission(
+                this, Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
+            Toast.makeText(this, "Location permission required", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        locationClient.getCurrentLocation(
+                com.google.android.gms.location.Priority.PRIORITY_HIGH_ACCURACY,
+                null
+        ).addOnSuccessListener(location -> {
+
+            if (location == null) {
+                Toast.makeText(this,
+                        "Unable to fetch live location",
+                        Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            double lat = location.getLatitude();
+            double lng = location.getLongitude();
+
+            txtLatLng.setText(
+                    "Lat: " + lat + "\nLng: " + lng
+            );
+
+            Toast.makeText(this,
+                    "Location refreshed",
+                    Toast.LENGTH_SHORT).show();
+        });
+    }
+
+    private void updatePermissionStatus() {
+
+        // CAMERA (safe check)
+        int camPerm = PackageManager.PERMISSION_DENIED;
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+            camPerm = ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA);
+        }
+        setPermText(txtPermCamera, camPerm);
+
+        // LOCATION
+        setPermText(
+                txtPermLocation,
+                ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+        );
+
+        // INTERNET (always granted)
+        setPermText(txtPermInternet, PackageManager.PERMISSION_GRANTED);
+    }
+
+    private void setPermText(TextView tv, int status) {
+        String label = tv.getText().toString().split(":")[0];
+
+        if (status == PackageManager.PERMISSION_GRANTED) {
+            tv.setText(label + ": ✅ Granted");
+            tv.setTextColor(0xFF2E7D32); // Green
+        } else {
+            tv.setText(label + ": ❌ Not Granted");
+            tv.setTextColor(0xFFC62828); // Red
+        }
+    }
+
+    private void openAppSettings() {
+        Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+        intent.setData(Uri.fromParts("package", getPackageName(), null));
+        startActivity(intent);
     }
 
     // ================= LOCATION CHECK =================
