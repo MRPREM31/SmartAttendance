@@ -66,7 +66,7 @@ public class TeacherDashboardActivity extends AppCompatActivity {
     TextView txtCountdown, txtDateTime, txtGreeting;
     TextView txtQRSubject, txtQRTime, txtQRId;
     TextView txtPermCamera, txtPermLocation, txtPermInternet;
-    TextView txtTeacherLatLng, txtTeacherPlace, txtLivePresentCount;
+    TextView txtTeacherLatLng, txtTeacherPlace, txtLivePresentCount, txtFullPresentCount;
 
     FirebaseAuth auth;
     FirebaseFirestore db;
@@ -80,6 +80,8 @@ public class TeacherDashboardActivity extends AppCompatActivity {
     Runnable gpsRunnable;
     Handler presentCountHandler = new Handler();
     Runnable presentCountRunnable;
+    Handler fullPresentHandler = new Handler();
+    Runnable fullPresentRunnable;
 
     private static final String GOOGLE_SCRIPT_URL =
             "https://script.google.com/macros/s/AKfycbxarlUMGk9HjBb3F4I3RllhYGVJblff7qvQgdi-g0Ey9xHA1bLkHh9jKAibItThop6G/exec";
@@ -210,6 +212,9 @@ public class TeacherDashboardActivity extends AppCompatActivity {
         TextView txtFullTime = view.findViewById(R.id.txtFullTime);
         TextView txtFullQRId = view.findViewById(R.id.txtFullQRId);
         TextView txtFullCountdown = view.findViewById(R.id.txtFullCountdown);
+        txtFullPresentCount = view.findViewById(R.id.txtFullPresentCount);
+        txtFullPresentCount.setText("Present Students: 0");
+        startFullScreenLivePresentCount();
 
         imgFullQR.setImageDrawable(imgQR.getDrawable());
         txtFullSubject.setText("Subject: " + spinnerSubject.getSelectedItem());
@@ -226,6 +231,7 @@ public class TeacherDashboardActivity extends AppCompatActivity {
 
             @Override
             public void onFinish() {
+                stopFullScreenLivePresentCount();
                 if (fullQrDialog != null && fullQrDialog.isShowing()) {
                     fullQrDialog.dismiss();
                 }
@@ -236,11 +242,56 @@ public class TeacherDashboardActivity extends AppCompatActivity {
         // Tap anywhere to close manually
         view.setOnClickListener(v -> {
             if (fullQrTimer != null) fullQrTimer.cancel();
+            stopFullScreenLivePresentCount();
             fullQrDialog.dismiss();
         });
 
         fullQrDialog.show();
     }
+
+    private void stopFullScreenLivePresentCount() {
+        if (fullPresentRunnable != null) {
+            fullPresentHandler.removeCallbacks(fullPresentRunnable);
+            fullPresentRunnable = null;
+        }
+    }
+
+    private void startFullScreenLivePresentCount() {
+
+        // 🔁 Clear old runnable
+        if (fullPresentRunnable != null) {
+            fullPresentHandler.removeCallbacks(fullPresentRunnable);
+        }
+
+        fullPresentRunnable = new Runnable() {
+            @Override
+            public void run() {
+
+                if (currentSessionId == null || currentSessionId.isEmpty()) {
+                    fullPresentHandler.postDelayed(this, 3000);
+                    return;
+                }
+
+                db.collection("attendance_records")
+                        .whereEqualTo("sessionId", currentSessionId)
+                        .get()
+                        .addOnSuccessListener(qs -> {
+                            int count = qs.size();
+                            if (txtFullPresentCount != null) {
+                                txtFullPresentCount.setText(
+                                        "Present Students: " + count
+                                );
+                            }
+                        });
+
+                // 🔁 Every 3 seconds
+                fullPresentHandler.postDelayed(this, 3000);
+            }
+        };
+
+        fullPresentHandler.post(fullPresentRunnable);
+    }
+
 
     private void updatePermissionStatus() {
 
@@ -662,6 +713,9 @@ public class TeacherDashboardActivity extends AppCompatActivity {
         if (fullQrTimer != null) {
             fullQrTimer.cancel();
         }
+
+        stopFullScreenLivePresentCount();
+
         if (presentCountRunnable != null) {
             presentCountHandler.removeCallbacks(presentCountRunnable);
             presentCountRunnable = null;
@@ -756,7 +810,7 @@ public class TeacherDashboardActivity extends AppCompatActivity {
     protected void onStop() {
         super.onStop();
 
-        if (currentSessionId != null && !currentSessionId.isEmpty()) {
+        if (isFinishing() && currentSessionId != null && !currentSessionId.isEmpty()) {
             endSession();
         }
     }
