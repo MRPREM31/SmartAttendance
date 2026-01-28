@@ -54,7 +54,7 @@
                 android:backgroundTint="#009688"
                 android:layout_marginTop="16dp"/>
 
-            <!-- RESULT CARD -->
+
             <!-- RESULT CARD -->
             <LinearLayout
                 android:id="@+id/layoutResult"
@@ -131,6 +131,75 @@
                 android:backgroundTint="#3F51B5"
                 android:textColor="@android:color/white"
                 android:layout_marginTop="12dp"/>
+
+            <Spinner
+                android:id="@+id/spinnerSubjectFilter"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:layout_marginTop="12dp"
+                android:background="@android:drawable/btn_dropdown"
+                android:visibility="gone"/>
+
+            <LinearLayout
+                android:id="@+id/layoutAttendanceSummary"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp"
+                android:background="@drawable/bg_distance_card"
+                android:layout_marginTop="16dp"
+                android:visibility="gone">
+
+                <!-- 🔴 HEADING -->
+                <TextView
+                    android:id="@+id/txtAttendanceTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="📊 Attendance Summary"
+                    android:textStyle="bold"
+                    android:textSize="16sp"
+                    android:textColor="#C62828" />  <!-- RED -->
+
+                <!-- 🔵 TOTAL CLASSES -->
+                <TextView
+                    android:id="@+id/txtTotalClasses"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:text="Total Classes: --"
+                    android:textSize="15sp"
+                    android:textColor="#0D47A1" />   <!-- DARK BLUE -->
+
+                <!-- 🔵 PRESENT COUNT -->
+                <TextView
+                    android:id="@+id/txtPresentCount"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Present: --"
+                    android:textSize="15sp"
+                    android:textColor="#1B5E20" />   <!-- DARK GREEN -->
+
+                <!-- ⚫ LAST ATTENDANCE -->
+                <TextView
+                    android:id="@+id/txtLastAttendance"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Last Attended: --"
+                    android:textSize="14sp"
+                    android:textColor="#212121" />   <!-- NEAR BLACK -->
+
+                <!-- 🟣 ATTENDANCE PERCENTAGE -->
+                <TextView
+                    android:id="@+id/txtAttendancePercentage"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Attendance: --%"
+                    android:textSize="15sp"
+                    android:textStyle="bold"
+                    android:textColor="#6A1B9A"
+                    android:layout_marginTop="6dp" />
+
+            </LinearLayout>
 
         </LinearLayout>
     </ScrollView>
