@@ -66,11 +66,8 @@
         <activity android:name=".WebViewActivity" android:exported="false" />
         <activity android:name=".StudentAttendanceReportActivity" android:exported="false" />
         <activity android:name=".StudentDetailsActivity" android:exported="false" />
-        <activity
-            android:name=".TeacherDetailsActivity"
-            android:exported="false" />
-        <activity android:name=".TeacherStudentLookupActivity"
-            android:exported="false"/>
+        <activity android:name=".TeacherDetailsActivity" android:exported="false" />
+        <activity android:name=".TeacherStudentLookupActivity" android:exported="false"/>
 
 
     </application>
