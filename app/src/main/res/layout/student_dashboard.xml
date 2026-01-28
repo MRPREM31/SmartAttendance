@@ -61,12 +61,29 @@
                     android:clipToOutline="true"
                     android:layout_marginBottom="8dp"/>
 
-                <Button
-                    android:id="@+id/btnUploadStudentImage"
-                    android:layout_width="wrap_content"
+                <LinearLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Upload Photo"
-                    android:textAllCaps="false"/>
+                    android:orientation="horizontal"
+                    android:gravity="center"
+                    android:layout_marginTop="8dp">
+
+                    <Button
+                        android:id="@+id/btnUploadStudentImage"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Upload Photo"
+                        android:textAllCaps="false"/>
+
+                    <Button
+                        android:id="@+id/btnViewStudentDetails"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Student Details"
+                        android:textAllCaps="false"
+                        android:layout_marginStart="12dp"/>
+                </LinearLayout>
+
             </LinearLayout>
 
             <!-- TITLE -->

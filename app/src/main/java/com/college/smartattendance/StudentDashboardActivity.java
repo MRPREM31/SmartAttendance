@@ -57,7 +57,7 @@ public class StudentDashboardActivity extends AppCompatActivity {
     TextView txtPermCamera, txtPermLocation, txtPermInternet;
     ImageView imgStudentProfile;
     Button btnUploadStudentImage;
-
+    Button btnViewStudentDetails;
     Button btnRefreshLocation;
 
     // Distance config
@@ -135,6 +135,12 @@ public class StudentDashboardActivity extends AppCompatActivity {
         btnScanQR.setOnClickListener(v -> checkLocationThenScan());
         btnViewReport.setOnClickListener(v ->
                 startActivity(new Intent(this, StudentAttendanceReportActivity.class)));
+        btnViewStudentDetails = findViewById(R.id.btnViewStudentDetails);
+
+        btnViewStudentDetails.setOnClickListener(v ->
+                startActivity(new Intent(this, StudentDetailsActivity.class))
+        );
+
 
         // 🔷 Load data
         loadStudentName();

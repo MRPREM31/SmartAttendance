@@ -65,6 +65,7 @@
         <activity android:name=".UserGuidelinesActivity" android:exported="false" />
         <activity android:name=".WebViewActivity" android:exported="false" />
         <activity android:name=".StudentAttendanceReportActivity" android:exported="false" />
+        <activity android:name=".StudentDetailsActivity" android:exported="false" />
 
     </application>
 </manifest>
