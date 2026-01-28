@@ -24,6 +24,7 @@ import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.view.View;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -106,6 +107,16 @@ public class TeacherDashboardActivity extends AppCompatActivity {
         btnEditSubjects = findViewById(R.id.btnEditSubjects);
         btnUploadImage = findViewById(R.id.btnUploadImage);
         imgQR = findViewById(R.id.imgQR);
+        imgQR.setOnLongClickListener(v -> {
+
+            if (currentSessionId == null || currentSessionId.isEmpty()) {
+                Toast.makeText(this, "QR not generated yet", Toast.LENGTH_SHORT).show();
+                return true;
+            }
+
+            openFullScreenQR();
+            return true; // IMPORTANT
+        });
         imgProfile = findViewById(R.id.imgProfile);
 
         txtCountdown = findViewById(R.id.txtCountdown);
@@ -164,6 +175,56 @@ public class TeacherDashboardActivity extends AppCompatActivity {
         updatePermissionStatus();
 
         btnRefreshTeacherLocation.setOnClickListener(v -> refreshTeacherLocation());
+    }
+
+    private AlertDialog fullQrDialog;
+    private CountDownTimer fullQrTimer;
+
+    private void openFullScreenQR() {
+
+        AlertDialog.Builder builder =
+                new AlertDialog.Builder(this, android.R.style.Theme_Black_NoTitleBar_Fullscreen);
+
+        View view = getLayoutInflater().inflate(R.layout.dialog_fullscreen_qr, null);
+        builder.setView(view);
+
+        fullQrDialog = builder.create();
+
+        ImageView imgFullQR = view.findViewById(R.id.imgFullQR);
+        TextView txtFullSubject = view.findViewById(R.id.txtFullSubject);
+        TextView txtFullTime = view.findViewById(R.id.txtFullTime);
+        TextView txtFullQRId = view.findViewById(R.id.txtFullQRId);
+        TextView txtFullCountdown = view.findViewById(R.id.txtFullCountdown);
+
+        imgFullQR.setImageDrawable(imgQR.getDrawable());
+        txtFullSubject.setText("Subject: " + spinnerSubject.getSelectedItem());
+        txtFullTime.setText("Time Slot: " + spinnerTime.getSelectedItem());
+        txtFullQRId.setText("QR ID: " + currentSessionId.substring(0, 8));
+
+        long remainingMs = sessionEndTime - System.currentTimeMillis();
+
+        fullQrTimer = new CountDownTimer(remainingMs, 1000) {
+            @Override
+            public void onTick(long ms) {
+                txtFullCountdown.setText("Scan time left: " + (ms / 1000) + " sec");
+            }
+
+            @Override
+            public void onFinish() {
+                if (fullQrDialog != null && fullQrDialog.isShowing()) {
+                    fullQrDialog.dismiss();
+                }
+            }
+        };
+        fullQrTimer.start();
+
+        // Tap anywhere to close manually
+        view.setOnClickListener(v -> {
+            if (fullQrTimer != null) fullQrTimer.cancel();
+            fullQrDialog.dismiss();
+        });
+
+        fullQrDialog.show();
     }
 
     private void updatePermissionStatus() {
@@ -515,6 +576,14 @@ public class TeacherDashboardActivity extends AppCompatActivity {
 
     // ================= END SESSION =================
     private void endSession() {
+
+        // 🔒 CLOSE FULLSCREEN QR IF OPEN
+        if (fullQrDialog != null && fullQrDialog.isShowing()) {
+            fullQrDialog.dismiss();
+        }
+        if (fullQrTimer != null) {
+            fullQrTimer.cancel();
+        }
 
         qrHandler.removeCallbacksAndMessages(null);
 
