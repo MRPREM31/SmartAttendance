@@ -82,6 +82,8 @@ public class TeacherDashboardActivity extends AppCompatActivity {
     Runnable presentCountRunnable;
     Handler fullPresentHandler = new Handler();
     Runnable fullPresentRunnable;
+    Handler fullQrHandler = new Handler();
+    Runnable fullQrRunnable;
 
     private static final String GOOGLE_SCRIPT_URL =
             "https://script.google.com/macros/s/AKfycbxarlUMGk9HjBb3F4I3RllhYGVJblff7qvQgdi-g0Ey9xHA1bLkHh9jKAibItThop6G/exec";
@@ -208,15 +210,15 @@ public class TeacherDashboardActivity extends AppCompatActivity {
         fullQrDialog = builder.create();
 
         ImageView imgFullQR = view.findViewById(R.id.imgFullQR);
+        startFullScreenDynamicQR(imgFullQR);
+        startFullScreenLivePresentCount();
         TextView txtFullSubject = view.findViewById(R.id.txtFullSubject);
         TextView txtFullTime = view.findViewById(R.id.txtFullTime);
         TextView txtFullQRId = view.findViewById(R.id.txtFullQRId);
         TextView txtFullCountdown = view.findViewById(R.id.txtFullCountdown);
         txtFullPresentCount = view.findViewById(R.id.txtFullPresentCount);
         txtFullPresentCount.setText("Present Students: 0");
-        startFullScreenLivePresentCount();
 
-        imgFullQR.setImageDrawable(imgQR.getDrawable());
         txtFullSubject.setText("Subject: " + spinnerSubject.getSelectedItem());
         txtFullTime.setText("Time Slot: " + spinnerTime.getSelectedItem());
         txtFullQRId.setText("QR ID: " + currentSessionId.substring(0, 8));
@@ -224,14 +226,20 @@ public class TeacherDashboardActivity extends AppCompatActivity {
         long remainingMs = sessionEndTime - System.currentTimeMillis();
 
         fullQrTimer = new CountDownTimer(remainingMs, 1000) {
+
             @Override
             public void onTick(long ms) {
-                txtFullCountdown.setText("Scan time left: " + (ms / 1000) + " sec");
+                txtFullCountdown.setText(
+                        "Scan time left: " + (ms / 1000) + " sec"
+                );
             }
 
             @Override
             public void onFinish() {
+                // ✅ STOP everything related to fullscreen
+                stopFullScreenDynamicQR();
                 stopFullScreenLivePresentCount();
+
                 if (fullQrDialog != null && fullQrDialog.isShowing()) {
                     fullQrDialog.dismiss();
                 }
@@ -242,6 +250,7 @@ public class TeacherDashboardActivity extends AppCompatActivity {
         // Tap anywhere to close manually
         view.setOnClickListener(v -> {
             if (fullQrTimer != null) fullQrTimer.cancel();
+            stopFullScreenDynamicQR();
             stopFullScreenLivePresentCount();
             fullQrDialog.dismiss();
         });
@@ -290,6 +299,46 @@ public class TeacherDashboardActivity extends AppCompatActivity {
         };
 
         fullPresentHandler.post(fullPresentRunnable);
+    }
+
+    private void startFullScreenDynamicQR(ImageView imgFullQR) {
+
+        stopFullScreenDynamicQR(); // safety
+
+        fullQrRunnable = new Runnable() {
+            @Override
+            public void run() {
+
+                if (currentSessionId == null || currentSessionId.isEmpty()) return;
+                if (System.currentTimeMillis() > sessionEndTime) return;
+
+                try {
+                    String payload =
+                            currentSessionId + "|" + System.currentTimeMillis();
+
+                    Bitmap bitmap = new BarcodeEncoder().encodeBitmap(
+                            payload,
+                            BarcodeFormat.QR_CODE,
+                            500,
+                            500
+                    );
+
+                    imgFullQR.setImageBitmap(bitmap);
+
+                } catch (Exception ignored) {}
+
+                fullQrHandler.postDelayed(this, 10_000);
+            }
+        };
+
+        fullQrHandler.post(fullQrRunnable);
+    }
+
+    private void stopFullScreenDynamicQR() {
+        if (fullQrRunnable != null) {
+            fullQrHandler.removeCallbacks(fullQrRunnable);
+            fullQrRunnable = null;
+        }
     }
 
 
