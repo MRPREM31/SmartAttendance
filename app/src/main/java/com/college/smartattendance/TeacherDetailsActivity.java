@@ -51,6 +51,10 @@ public class TeacherDetailsActivity extends AppCompatActivity {
         txtUid.setOnClickListener(v -> shareText("Teacher UID", txtUid.getText().toString()));
         txtDeviceId.setOnClickListener(v ->
                 shareText("Device ID", txtDeviceId.getText().toString()));
+        findViewById(R.id.btnViewStudentDetails)
+                .setOnClickListener(v ->
+                        startActivity(new Intent(this, TeacherStudentLookupActivity.class)));
+
     }
 
     private void loadTeacherDetails() {

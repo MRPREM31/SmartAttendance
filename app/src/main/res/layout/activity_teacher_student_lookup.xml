@@ -3,8 +3,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:fitsSystemWindows="true"
-    android:background="#FAFAFA">
+    android:background="#FAFAFA"
+    android:fitsSystemWindows="true">
 
     <!-- 🔷 TOOLBAR -->
     <include layout="@layout/toolbar_main" />
@@ -20,24 +20,51 @@
             android:orientation="vertical"
             android:padding="24dp">
 
-            <!-- 👨‍🏫 HEADER -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Teacher Information"
+                android:text="Search Student"
                 android:textSize="20sp"
                 android:textStyle="bold"
                 android:textColor="#1A237E"
-                android:layout_marginBottom="16dp" />
+                android:layout_marginBottom="16dp"/>
 
-            <!-- 🧾 DETAILS CARD -->
+
+            <!-- INPUT -->
+            <EditText
+                android:id="@+id/edtStudentQuery"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:hint="Enter Student Email or Name"
+                android:inputType="textEmailAddress"
+                android:background="@drawable/bg_distance_card"
+                android:padding="12dp"
+                android:textColor="#0D47A1"
+                android:textColorHint="#5C6BC0"/>
+
+
+            <Button
+                android:id="@+id/btnFetchStudent"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:text="Fetch Details"
+                android:textAllCaps="false"
+                android:textStyle="bold"
+                android:textColor="@android:color/white"
+                android:backgroundTint="#009688"
+                android:layout_marginTop="16dp"/>
+
+            <!-- RESULT CARD -->
+            <!-- RESULT CARD -->
             <LinearLayout
+                android:id="@+id/layoutResult"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:background="@drawable/bg_distance_card"
                 android:padding="16dp"
-                android:layout_marginBottom="20dp">
+                android:layout_marginTop="20dp"
+                android:visibility="gone">
 
                 <TextView
                     android:id="@+id/txtName"
@@ -46,80 +73,65 @@
                     android:text="Name:"
                     android:textSize="16sp"
                     android:textStyle="bold"
-                    android:textColor="#1A237E" />
+                    android:textColor="#1A237E"/>
 
                 <TextView
                     android:id="@+id/txtEmail"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Email:"
-                    android:layout_marginTop="8dp"
-                    android:textColor="#1A237E" />
+                    android:textSize="15sp"
+                    android:layout_marginTop="6dp"
+                    android:textColor="#37474F"/>
 
                 <TextView
                     android:id="@+id/txtRole"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Role:"
-                    android:layout_marginTop="8dp"
-                    android:textColor="#1A237E" />
+                    android:textSize="15sp"
+                    android:layout_marginTop="6dp"
+                    android:textColor="#37474F"/>
 
                 <TextView
                     android:id="@+id/txtUid"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="UID:"
-                    android:textColor="#1565C0"
-                    android:layout_marginTop="12dp" />
+                    android:textSize="14sp"
+                    android:layout_marginTop="10dp"
+                    android:textColor="#1565C0"/>
 
                 <TextView
                     android:id="@+id/txtDeviceId"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Device ID:"
-                    android:textColor="#1565C0"
-                    android:layout_marginTop="8dp" />
+                    android:textSize="14sp"
+                    android:layout_marginTop="6dp"
+                    android:textColor="#1565C0"/>
 
                 <TextView
                     android:id="@+id/txtCreatedAt"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Created At:"
-                    android:textColor="#1A237E"
-                    android:layout_marginTop="8dp" />
+                    android:textSize="13sp"
+                    android:layout_marginTop="6dp"
+                    android:textColor="#607D8B"/>
 
-                <!-- 🟦 INFO NOTE -->
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Tap UID or Device ID to share"
-                    android:textSize="12sp"
-                    android:textColor="#009688"
-                    android:layout_marginTop="12dp" />
             </LinearLayout>
 
             <Button
-                android:id="@+id/btnViewStudentDetails"
+                android:id="@+id/btnCopyStudentInfo"
                 android:layout_width="match_parent"
-                android:layout_height="52dp"
-                android:text="View Student Details"
+                android:layout_height="48dp"
+                android:text="📋 Copy Student Info"
                 android:textAllCaps="false"
-                android:textStyle="bold"
-                android:textColor="@android:color/white"
                 android:backgroundTint="#3F51B5"
-                android:layout_marginBottom="20dp"/>
-
-            <!-- 🕒 LIVE DATE TIME -->
-            <TextView
-                android:id="@+id/txtDateTime"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Loading time..."
-                android:textSize="14sp"
-                android:textColor="#37474F"
-                android:layout_gravity="center" />
+                android:textColor="@android:color/white"
+                android:layout_marginTop="12dp"/>
 
         </LinearLayout>
     </ScrollView>
-
 </LinearLayout>
