@@ -533,6 +533,7 @@ public class StudentDashboardActivity extends AppCompatActivity {
         record.put("timeSlot", sessionDoc.getString("timeSlot"));
         record.put("classTime", sessionDoc.getString("timeSlot"));
         record.put("teacherName", sessionDoc.getString("teacherName"));
+        record.put("createdAt", System.currentTimeMillis());
 
         db.collection("attendance_records")
                 .add(record)

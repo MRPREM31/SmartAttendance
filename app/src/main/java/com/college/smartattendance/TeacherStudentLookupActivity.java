@@ -90,7 +90,7 @@ public class TeacherStudentLookupActivity extends AppCompatActivity {
 
                     int total = qs.size();
                     int present = 0;
-                    String latestDateTime = "";
+                    long latestTimestamp = 0;
 
                     for (var d : qs) {
 
@@ -98,21 +98,16 @@ public class TeacherStudentLookupActivity extends AppCompatActivity {
                             present++;
                         }
 
-                        String date = d.getString("date");   // yyyy-MM-dd
-                        String time = d.getString("time");   // HH:mm:ss
-
-                        if (date != null && time != null) {
-                            String dt = date + " " + time;
-                            if (dt.compareTo(latestDateTime) > 0) {
-                                latestDateTime = dt;
-                            }
+                        Long createdAt = d.getLong("createdAt");
+                        if (createdAt != null && createdAt > latestTimestamp) {
+                            latestTimestamp = createdAt;
                         }
                     }
 
                     txtTotalClasses.setText("Total Classes: " + total);
                     txtPresentCount.setText("Present: " + present);
 
-                    // ✅ CALCULATE PERCENTAGE
+                    // 📊 PERCENTAGE
                     if (total > 0) {
                         float percent = (present * 100f) / total;
                         txtAttendancePercentage.setText(
@@ -123,9 +118,14 @@ public class TeacherStudentLookupActivity extends AppCompatActivity {
                         txtAttendancePercentage.setText("Attendance: --%");
                     }
 
+                    // 🕒 LAST ATTENDED
+                    if (latestTimestamp > 0) {
+                        String formatted = new SimpleDateFormat(
+                                "dd MMM yyyy | HH:mm",
+                                Locale.getDefault()
+                        ).format(new Date(latestTimestamp));
 
-                    if (!latestDateTime.isEmpty()) {
-                        txtLastAttendance.setText("Last Attended: " + latestDateTime);
+                        txtLastAttendance.setText("Last Attended: " + formatted);
                     } else {
                         txtLastAttendance.setText("Last Attended: --");
                     }
@@ -133,8 +133,11 @@ public class TeacherStudentLookupActivity extends AppCompatActivity {
                     layoutAttendanceSummary.setVisibility(View.VISIBLE);
                 })
                 .addOnFailureListener(e ->
-                        Toast.makeText(this, "Attendance load failed", Toast.LENGTH_SHORT).show());
+                        Toast.makeText(this,
+                                "Attendance load failed",
+                                Toast.LENGTH_SHORT).show());
     }
+
 
     private void loadTeacherSubjects() {
 
@@ -260,14 +263,6 @@ public class TeacherStudentLookupActivity extends AppCompatActivity {
                 txtRole.setText("Role: " + doc.getString("role"));
                 txtUid.setText("UID: " + selectedStudentId);
                 txtDeviceId.setText("Device ID: " + doc.getString("deviceId"));
-
-                Long created = doc.getLong("createdAt");
-                if (created != null) {
-                    String date = new SimpleDateFormat(
-                            "dd MMM yyyy, hh:mm a",
-                            Locale.getDefault()).format(new Date(created));
-                    txtCreatedAt.setText("Created At: " + date);
-                }
 
                 layoutResult.setVisibility(View.VISIBLE);
 
