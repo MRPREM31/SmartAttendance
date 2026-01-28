@@ -151,6 +151,10 @@ public class TeacherDashboardActivity extends AppCompatActivity {
         btnGenerateQR.setOnClickListener(v -> fetchTeacherNameAndCreateSession());
         btnViewAttendance.setOnClickListener(v ->
                 startActivity(new Intent(this, AttendanceReportActivity.class)));
+        Button btnViewTeacherDetails = findViewById(R.id.btnViewTeacherDetails);
+
+        btnViewTeacherDetails.setOnClickListener(v ->
+                startActivity(new Intent(this, TeacherDetailsActivity.class)));
 
         btnEditSubjects.setOnClickListener(v -> showSubjectDialog(true));
         btnUploadImage.setOnClickListener(v -> imagePickerLauncher.launch("image/*"));
